@@ -11,3 +11,5 @@ app.use(express.urlencoded({extended:true}))
 app.get('/', (req,res)=>{
     res.send("Helloooo kya hal ha theak ho")
 })
+
+module.exports= app
