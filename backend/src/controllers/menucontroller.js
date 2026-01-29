@@ -3,7 +3,7 @@ const MenuItem = require('../schemas/MenuItem');
 // CREATE MENU ITEM
 exports.createMenuItem = async (req, res) => {
     try {
-        const { name, description, price, category, image, availiabilty } = req.body;
+        const { name, description, price, category, image, availability } = req.body;
 
         // validation
         if (!name || typeof name !== 'string') {
@@ -13,8 +13,8 @@ exports.createMenuItem = async (req, res) => {
         }
         if (!description || typeof description !== 'string') {
             return res.status(400).json({
-                 msg: "Error in description!" 
-                });
+                msg: "Error in description!"
+            });
         }
         if (price === undefined || typeof price !== 'number') {
             return res.status(400).json({ msg: "Error in price!" });
@@ -22,7 +22,7 @@ exports.createMenuItem = async (req, res) => {
         if (!category || typeof category !== 'string') {
             return res.status(400).json({ msg: "Error in category!" });
         }
-        if (availiabilty === undefined || typeof availiabilty !== 'boolean') {
+        if (availability === undefined || typeof availability !== 'boolean') {
             return res.status(400).json({ msg: "Error in availability!" });
         }
 
@@ -32,7 +32,7 @@ exports.createMenuItem = async (req, res) => {
             price,
             category,
             image,
-            availiabilty
+            availability
         });
 
         return res.status(201).json({
@@ -53,7 +53,7 @@ exports.createMenuItem = async (req, res) => {
 exports.updateMenuItem = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, category, image, availiabilty } = req.body;
+        const { name, description, price, category, image, availability } = req.body;
 
         if (name && typeof name !== 'string') {
             return res.status(400).json({ msg: "Name must be a string" });
@@ -67,7 +67,7 @@ exports.updateMenuItem = async (req, res) => {
         if (category && typeof category !== 'string') {
             return res.status(400).json({ msg: "Category must be a string" });
         }
-        if (availiabilty !== undefined && typeof availiabilty !== 'boolean') {
+        if (availability !== undefined && typeof availability !== 'boolean') {
             return res.status(400).json({ msg: "Availability must be a boolean" });
         }
         if (image && typeof image !== 'string') {
@@ -76,7 +76,7 @@ exports.updateMenuItem = async (req, res) => {
 
         const menuItem = await MenuItem.findByIdAndUpdate(
             id,
-            { name, description, price, category, image, availiabilty },
+            { name, description, price, category, image, availability },
             { new: true, runValidators: true }
         );
 
@@ -99,7 +99,7 @@ exports.updateMenuItem = async (req, res) => {
 };
 
 // SOFT DELETE MENU ITEM
-exports.deleteItm = async (req, res) => {
+exports.deleteItem = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -135,7 +135,7 @@ exports.getAllItems = async (req, res) => {
         return res.status(200).json({
             success: true,
             count: menuItems.length,
-            data: menuItems
+            data: await menuItems
         });
 
     } catch (error) {

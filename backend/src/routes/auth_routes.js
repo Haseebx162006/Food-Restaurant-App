@@ -1,9 +1,10 @@
 const express = require('express')
 const {signUp,login,logout}= require('../controllers/authcontroller')
 const router= express.Router()
+const {protect, adminOnly}= require('../middleware/auth_middleware')
 
 // for signup
-router.post('/signup',signUp)
+router.post('/api/auth/signup',signUp)
 
 // fr login
 
@@ -11,7 +12,7 @@ router.post('/login',login)
 
 
 // for admin route
-router.get('/admin',protect,adminOnly, (req,res)=>{
+router.get('/admin',adminOnly, (req,res)=>{
     res.json({
         success:true,
         message:"Welcome Admin"

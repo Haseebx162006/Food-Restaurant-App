@@ -32,7 +32,7 @@ exports.protect = async (req, res, next) => {
             });
         }
 
-        // 5️⃣ Move to next middleware
+        //  Move to next middleware
         return next();
 
     } catch (error) {
@@ -41,7 +41,7 @@ exports.protect = async (req, res, next) => {
         });
     }
 };
-exports.adminonly = async (req, res,next) => {
+exports.adminOnly = async (req, res,next) => {
     try {
         if(req.user && req.user.role === "admin"){
             return next()
