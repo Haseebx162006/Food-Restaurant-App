@@ -7,10 +7,14 @@ exports.createMenuItem = async (req, res) => {
 
         // validation
         if (!name || typeof name !== 'string') {
-            return res.status(400).json({ msg: "Error in name!" });
+            return res.status(400).json(
+                { msg: "Error in name!" }
+            );
         }
         if (!description || typeof description !== 'string') {
-            return res.status(400).json({ msg: "Error in description!" });
+            return res.status(400).json({
+                 msg: "Error in description!" 
+                });
         }
         if (price === undefined || typeof price !== 'number') {
             return res.status(400).json({ msg: "Error in price!" });
