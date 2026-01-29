@@ -1,6 +1,6 @@
 const mongoose= require('mongoose')
 const bcrypt= require('bcrypt')
-exports.userSchema= mongoose.Schema({
+const userSchema= mongoose.Schema({
     name:{
         type:String,
         required:[true,"name is required"]
@@ -25,6 +25,7 @@ exports.userSchema= mongoose.Schema({
         default:"customer"
     }
 })
+
 userSchema.pre("save", async function (){
     if(!this.isModified("password")){
         return 

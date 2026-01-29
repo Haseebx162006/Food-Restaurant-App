@@ -3,7 +3,7 @@ const jwt= require('jsonwebtoken')
 
 const generate_token= async (id) => {
     try {
-        return await jwt.sign({id},process.env,{
+        return await jwt.sign({id},process.env.SECRET_KEY,{
             expiresIn:"7d"
         })
     } catch (error) {

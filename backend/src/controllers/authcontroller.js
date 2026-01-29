@@ -1,9 +1,8 @@
 const generate_token= require('../utils/token')
 const User= require('../schemas/User')
-const { use } = require('react')
 exports.signUp= async (req,res) => {
     try {
-            const{name, email , password}= req.body
+ const{name, email , password}= req.body
     //checking for name validation
 
     if(!name || typeof name!=="string"){
@@ -47,20 +46,19 @@ exports.signUp= async (req,res) => {
         })
     }
 
-    const user= await User.userSchema({
+    const user= await User.create({
         name,email,password
     })
 
-    token= generate_token(user._id)
-
+    const token= await generate_token(user._id)
 
     return res.status(201).json({
       success: true,
-      token
+      result:token
     })
     } catch (error) {
         res.status(401).json({
-            message:"Error in the first try catch block"
+            message:"Error in the first try catch block signup"
         })
     }
 
@@ -69,13 +67,7 @@ exports.signUp= async (req,res) => {
 exports.login = async (req,res) => {
     try {
         const {email, password}= req.body
-
-    } catch (error) {
-        res.status(401).json({
-            msg:"Error in the login try catch block"
-        })
-    }
-     if(!email || typeof email !== "string"){
+        if(!email || typeof email !== "string"){
         return res.status(401).json({
             message:"Invalid Signup credentials"
         })
@@ -108,7 +100,7 @@ exports.login = async (req,res) => {
     }
     
 
-    const match= User.matchpassword(password)
+    const match= await userExists.matchpassword(password)
 
     if(!match){
          return res.status(401).json({
@@ -116,10 +108,31 @@ exports.login = async (req,res) => {
         })
     }
 
-    token= generate_token(userExists._id)
+    const token= await generate_token(userExists._id)
     
      return res.status(201).json({
       success: true,
       token
     })
+
+    } catch (error) {
+        res.status(401).json({
+            msg:"Error in the login try catch block"
+        })
+    }
+     
+}
+
+
+exports.logout=async (req,res) => {
+    try{
+        res.cookie('token','', {httpOnly:true, expires: new Date(0)})
+        res.status(200).json({
+            msg:"Logged out Successfully"
+        })
+    }catch(err){
+        res.status(401).json({
+            msg:"Error in logout"
+        })
+    }
 }
