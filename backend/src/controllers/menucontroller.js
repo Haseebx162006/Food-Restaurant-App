@@ -44,5 +44,60 @@ exports.createMenuItem= async (req,res) => {
 
 // update menuItem
 const updateMenuItem= async(req,res)=>{
-    
+    const {id}= req.params
+    const {name, description, price, category, image, availiabilty}= req.body 
+       if (name && typeof name !== 'string') {
+            return res.status(400).json({ msg: "Name must be a string" });
+        }
+        if (description && typeof description !== 'string') {
+            return res.status(400).json({ msg: "Description must be a string" });
+        }
+        if (price !== undefined && typeof price !== 'number') {
+            return res.status(400).json({ msg: "Price must be a number" });
+        }
+        if (category && typeof category !== 'string') {
+            return res.status(400).json({ msg: "Category must be a string" });
+        }
+        if (availiabilty !== undefined && typeof availiabilty !== 'boolean') {
+            return res.status(400).json({ msg: "Availability must be a boolean" });
+        }
+        if (image  && typeof image !== 'string') {
+            return res.status(400).json({ msg: "Availability must be a boolean" });
+        }
+
+        const menuItem= await MenuItem.findByIdAndUpdate(
+            id,
+            {
+                name,price,description,category,availiabilty
+            },
+            {
+                new:true,
+                runValidators:true
+            }
+        )
+         if (!menuItem) {
+            return res.status(404).json({ msg: "Menu item not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: menuItem
+        });
+
+}
+
+
+// deleting the item
+
+const deleteItm = async(req,res)=>{
+    const {id} = req.params
+
+    const menuItem= await MenuItem.findByIdAndDelete(id)
+
+    if(!menuItem){
+        res.status(404).json({
+            msg:"Error not found!"
+        })
+    }
+
 }
