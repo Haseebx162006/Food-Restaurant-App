@@ -10,7 +10,7 @@ const authService = {
     },
 
     signup: async (userData) => {
-        const response = await api.post('/auth/api/auth/signup', userData);
+        const response = await api.post('/auth/signup', userData);
         if (response.data.success) {
             // Backend uses 'result' for token in register, normalized here
             const token = response.data.token || response.data.result;

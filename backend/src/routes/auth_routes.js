@@ -1,30 +1,30 @@
 const express = require('express')
-const {signUp,login,logout}= require('../controllers/authcontroller')
-const router= express.Router()
-const {protect, adminOnly}= require('../middleware/auth_middleware')
+const { signUp, login, logout } = require('../controllers/authcontroller')
+const router = express.Router()
+const { protect, adminOnly } = require('../middleware/auth_middleware')
 
 // for signup
-router.post('/api/auth/signup',signUp)
+router.post('/signup', signUp)
 
 // fr login
 
-router.post('/login',login)
+router.post('/login', login)
 
 
 // for admin route
-router.get('/admin',adminOnly, (req,res)=>{
+router.get('/admin', adminOnly, (req, res) => {
     res.json({
-        success:true,
-        message:"Welcome Admin"
+        success: true,
+        message: "Welcome Admin"
     })
 })
 
 
 // for viewing the profile
-router.get('/profile',protect,(req,res)=>{
+router.get('/profile', protect, (req, res) => {
     res.json(req.user)
 })
 
-router.get('/logout',logout)
+router.get('/logout', logout)
 
-module.exports=router
+module.exports = router

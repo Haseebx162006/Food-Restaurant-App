@@ -20,12 +20,13 @@ const Navbar = () => {
             : [
                 { name: 'Menu', href: '/menu' },
                 { name: 'My Orders', href: '/orders' },
+                { name: 'Invoices', href: '/invoices' },
                 { name: 'Cart', href: '/cart' },
             ]
         : [
             { name: 'Menu', href: '/menu' },
             { name: 'Login', href: '/login' },
-            { name: 'Sign Up', href: '/api/auth/signup' },
+            { name: 'Sign Up', href: '/signup' },
         ];
 
     const handleLogout = () => {

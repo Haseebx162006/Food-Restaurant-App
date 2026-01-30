@@ -1,11 +1,17 @@
+/**
+ * Invoice Page Component
+ * Displays invoice details for an order with print and PDF download options
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import orderService from '@/services/orderService';
+import invoiceService from '@/services/invoiceService';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Spinner from '@/components/common/Spinner';
 import Button from '@/components/common/Button';
 import { toast } from 'react-toastify';
-import { Printer, Download, ArrowLeft, DownloadCloud } from 'lucide-react';
+import { Printer, Download, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Invoice() {
@@ -13,14 +19,19 @@ export default function Invoice() {
     const { id } = router.query;
     const [order, setOrder] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDownloading, setIsDownloading] = useState(false);
     const invoiceRef = useRef();
 
+    // Fetch order data when ID is available
     useEffect(() => {
         if (id) {
             fetchOrder();
         }
     }, [id]);
 
+    /**
+     * Fetch order details from the API
+     */
     const fetchOrder = async () => {
         setIsLoading(true);
         try {
@@ -35,41 +46,93 @@ export default function Invoice() {
         }
     };
 
+    /**
+     * Handle print button click - uses browser print dialog
+     */
     const handlePrint = () => {
         window.print();
     };
 
-    if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Spinner size="large" /></div>;
+    /**
+     * Handle PDF download button click
+     * Downloads the invoice as a PDF file
+     */
+    const handleDownloadPDF = async () => {
+        setIsDownloading(true);
+        try {
+            await invoiceService.downloadInvoicePDFBlob(id);
+            toast.success('PDF downloaded successfully');
+        } catch (err) {
+            toast.error('Failed to download PDF');
+            console.error('PDF download error:', err);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
-    if (!order) return <div className="text-center py-20">Order not found</div>;
+    // Show loading spinner while fetching data
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Spinner size="large" />
+            </div>
+        );
+    }
+
+    // Show error message if order not found
+    if (!order) {
+        return (
+            <div className="text-center py-20">
+                Order not found
+            </div>
+        );
+    }
 
     return (
         <ProtectedRoute>
             <div className="bg-gray-100 min-h-screen py-12 px-4 print:p-0 print:bg-white">
                 <div className="max-w-3xl mx-auto">
+                    {/* Action Buttons - Hidden when printing */}
                     <div className="flex justify-between items-center mb-8 print:hidden">
-                        <Link href={`/order/${order._id}`} className="flex items-center text-secondary font-bold hover:text-primary transition-colors">
+                        <Link
+                            href={`/order/${order._id}`}
+                            className="flex items-center text-secondary font-bold hover:text-primary transition-colors"
+                        >
                             <ArrowLeft className="mr-2" size={20} />
                             Back to Order
                         </Link>
                         <div className="space-x-4">
+                            {/* Print Button */}
                             <Button variant="outline" size="sm" onClick={handlePrint}>
                                 <Printer size={18} className="mr-2" />
                                 Print
                             </Button>
-                            <Button size="sm" onClick={() => toast.info('PDF Generation starting...')}>
+                            {/* PDF Download Button */}
+                            <Button
+                                size="sm"
+                                onClick={handleDownloadPDF}
+                                disabled={isDownloading}
+                            >
                                 <Download size={18} className="mr-2" />
-                                Download PDF
+                                {isDownloading ? 'Downloading...' : 'Download PDF'}
                             </Button>
                         </div>
                     </div>
 
                     {/* Invoice Document */}
-                    <div ref={invoiceRef} className="bg-white p-12 shadow-2xl rounded-sm border-t-8 border-primary print:shadow-none print:border-t-0 print:p-0">
+                    <div
+                        ref={invoiceRef}
+                        className="bg-white p-12 shadow-2xl rounded-sm border-t-8 border-primary print:shadow-none print:border-t-0 print:p-0"
+                    >
+                        {/* Header Section */}
                         <div className="flex justify-between items-start mb-12">
                             <div>
-                                <h1 className="text-4xl font-heading font-bold text-primary mb-2">FoodExpress</h1>
-                                <p className="text-gray-400 text-sm">Delicious food, fast delivery</p>
+                                <h1 className="text-4xl font-heading font-bold text-primary mb-2">
+                                    FoodExpress
+                                </h1>
+                                <p className="text-gray-400 text-sm">
+                                    Delicious food, fast delivery
+                                </p>
                                 <div className="mt-6 text-sm text-gray-500 space-y-1">
                                     <p>123 Food Street, Tasty City</p>
                                     <p>Phone: +1 234 567 890</p>
@@ -77,19 +140,38 @@ export default function Invoice() {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <h2 className="text-2xl font-heading font-bold text-dark mb-4 uppercase tracking-widest">Invoice</h2>
+                                <h2 className="text-2xl font-heading font-bold text-dark mb-4 uppercase tracking-widest">
+                                    Invoice
+                                </h2>
                                 <div className="space-y-2 text-sm">
-                                    <p className="flex justify-between"><span className="text-gray-400 mr-4">Invoice #:</span> <span className="font-bold text-dark">INV-{order.orderId}</span></p>
-                                    <p className="flex justify-between"><span className="text-gray-400 mr-4">Order ID:</span> <span className="font-medium">{order.orderId}</span></p>
-                                    <p className="flex justify-between"><span className="text-gray-400 mr-4">Date:</span> <span className="font-medium">{new Date(order.createdAt).toLocaleDateString()}</span></p>
-                                    <p className="flex justify-between"><span className="text-gray-400 mr-4">Status:</span> <span className="font-bold text-success uppercase">Paid</span></p>
+                                    <p className="flex justify-between">
+                                        <span className="text-gray-400 mr-4">Invoice #:</span>
+                                        <span className="font-bold text-dark">INV-{order.orderId}</span>
+                                    </p>
+                                    <p className="flex justify-between">
+                                        <span className="text-gray-400 mr-4">Order ID:</span>
+                                        <span className="font-medium">{order.orderId}</span>
+                                    </p>
+                                    <p className="flex justify-between">
+                                        <span className="text-gray-400 mr-4">Date:</span>
+                                        <span className="font-medium">
+                                            {new Date(order.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </p>
+                                    <p className="flex justify-between">
+                                        <span className="text-gray-400 mr-4">Status:</span>
+                                        <span className="font-bold text-success uppercase">Paid</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
+                        {/* Customer and Payment Info Section */}
                         <div className="grid grid-cols-2 gap-12 mb-12 border-y border-gray-100 py-8">
                             <div>
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Invoice To:</h3>
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                                    Invoice To:
+                                </h3>
                                 <div className="text-sm text-dark space-y-1">
                                     <p className="text-lg font-bold">{order.customerName}</p>
                                     <p>{order.deliveryAddress}</p>
@@ -97,15 +179,19 @@ export default function Invoice() {
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Payment Method:</h3>
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                                    Payment Method:
+                                </h3>
                                 <div className="text-sm text-dark">
                                     <p className="font-bold">Cash on Delivery</p>
-                                    <p className="text-gray-500 mt-2 italic text-xs">Note: Payment collected upon delivery of items.</p>
+                                    <p className="text-gray-500 mt-2 italic text-xs">
+                                        Note: Payment collected upon delivery of items.
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Table */}
+                        {/* Items Table */}
                         <table className="w-full mb-12">
                             <thead>
                                 <tr className="bg-gray-50 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">
@@ -127,7 +213,7 @@ export default function Invoice() {
                             </tbody>
                         </table>
 
-                        {/* Totals */}
+                        {/* Totals Section */}
                         <div className="flex justify-end">
                             <div className="w-64 space-y-3">
                                 <div className="flex justify-between text-sm text-gray-500">
@@ -149,9 +235,14 @@ export default function Invoice() {
                             </div>
                         </div>
 
+                        {/* Footer Section */}
                         <div className="mt-20 pt-8 border-t border-gray-100 text-center text-xs text-gray-400">
-                            <p className="mb-2">Thank you for ordering with FoodExpress! We appreciate your business.</p>
-                            <p>For any queries, please contact our support at support@foodexpress.com</p>
+                            <p className="mb-2">
+                                Thank you for ordering with FoodExpress! We appreciate your business.
+                            </p>
+                            <p>
+                                For any queries, please contact our support at support@foodexpress.com
+                            </p>
                         </div>
                     </div>
                 </div>

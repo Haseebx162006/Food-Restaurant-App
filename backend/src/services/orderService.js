@@ -26,7 +26,7 @@ const generateOrderId = async () => {
 const calculateOrderTotals = (items) => {
     const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const taxAmount = Math.round(subtotal * 0.05); // 5% tax
-    const deliveryAmount = 50; // Fixed delivery charge
+    const deliveryAmount = 150; // Fixed delivery charge
     const grandTotal = subtotal + taxAmount + deliveryAmount;
 
     return {
