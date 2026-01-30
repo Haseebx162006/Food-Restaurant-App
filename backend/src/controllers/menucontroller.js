@@ -1,9 +1,30 @@
 const MenuItem = require('../schemas/MenuItem');
+const socketManager = require('../utils/socketManager');
 
 // CREATE MENU ITEM
 exports.createMenuItem = async (req, res) => {
     try {
-        const { name, description, price, category, image, availability } = req.body;
+        console.log('[MenuController] createMenuItem called');
+        console.log('[MenuController] req.body:', req.body);
+        console.log('[MenuController] req.file:', req.file);
+
+        const { name, description, price, category, availability } = req.body;
+
+        // Handle image - could be uploaded file or URL
+        let image = req.body.image || '';
+        if (req.file) {
+            // File was uploaded via multer
+            image = `/uploads/menu/${req.file.filename}`;
+            console.log('[MenuController] Image path set to:', image);
+        }
+
+        // Parse price if it's a string (from FormData)
+        const parsedPrice = typeof price === 'string' ? parseFloat(price) : price;
+
+        // Parse availability if it's a string (from FormData)
+        const parsedAvailability = typeof availability === 'string'
+            ? availability === 'true'
+            : availability;
 
         // validation
         if (!name || typeof name !== 'string') {
@@ -16,23 +37,23 @@ exports.createMenuItem = async (req, res) => {
                 msg: "Error in description!"
             });
         }
-        if (price === undefined || typeof price !== 'number') {
+        if (parsedPrice === undefined || isNaN(parsedPrice)) {
             return res.status(400).json({ msg: "Error in price!" });
         }
         if (!category || typeof category !== 'string') {
             return res.status(400).json({ msg: "Error in category!" });
         }
-        if (availability === undefined || typeof availability !== 'boolean') {
+        if (parsedAvailability === undefined || typeof parsedAvailability !== 'boolean') {
             return res.status(400).json({ msg: "Error in availability!" });
         }
 
         const menuItem = await MenuItem.create({
             name,
             description,
-            price,
+            price: parsedPrice,
             category,
             image,
-            availability
+            availability: parsedAvailability
         });
 
         return res.status(201).json({
@@ -41,10 +62,12 @@ exports.createMenuItem = async (req, res) => {
         });
 
     } catch (error) {
+        console.error('[MenuController] createMenuItem CRITICAL ERROR:', error);
         return res.status(500).json({
             success: false,
             msg: "Server error while creating menu item",
-            error: error.message
+            error: error.message,
+            stack: error.stack // Temporarily show stack for debugging
         });
     }
 };
@@ -53,7 +76,24 @@ exports.createMenuItem = async (req, res) => {
 exports.updateMenuItem = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, category, image, availability } = req.body;
+        const { name, description, price, category, availability } = req.body;
+
+        // Handle image - could be uploaded file or URL or keep existing
+        let image = req.body.image;
+        if (req.file) {
+            // File was uploaded via multer
+            image = `/uploads/menu/${req.file.filename}`;
+        }
+
+        // Parse price if it's a string (from FormData)
+        const parsedPrice = price !== undefined
+            ? (typeof price === 'string' ? parseFloat(price) : price)
+            : undefined;
+
+        // Parse availability if it's a string (from FormData)
+        const parsedAvailability = availability !== undefined
+            ? (typeof availability === 'string' ? availability === 'true' : availability)
+            : undefined;
 
         if (name && typeof name !== 'string') {
             return res.status(400).json({ msg: "Name must be a string" });
@@ -61,27 +101,41 @@ exports.updateMenuItem = async (req, res) => {
         if (description && typeof description !== 'string') {
             return res.status(400).json({ msg: "Description must be a string" });
         }
-        if (price !== undefined && typeof price !== 'number') {
+        if (parsedPrice !== undefined && isNaN(parsedPrice)) {
             return res.status(400).json({ msg: "Price must be a number" });
         }
         if (category && typeof category !== 'string') {
             return res.status(400).json({ msg: "Category must be a string" });
         }
-        if (availability !== undefined && typeof availability !== 'boolean') {
-            return res.status(400).json({ msg: "Availability must be a boolean" });
-        }
-        if (image && typeof image !== 'string') {
-            return res.status(400).json({ msg: "Image must be a string" });
-        }
+
+        // Build update object with only provided fields
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (description) updateData.description = description;
+        if (parsedPrice !== undefined) updateData.price = parsedPrice;
+        if (category) updateData.category = category;
+        if (image) updateData.image = image;
+        if (parsedAvailability !== undefined) updateData.availability = parsedAvailability;
 
         const menuItem = await MenuItem.findByIdAndUpdate(
             id,
-            { name, description, price, category, image, availability },
+            updateData,
             { new: true, runValidators: true }
         );
 
         if (!menuItem) {
             return res.status(404).json({ msg: "Menu item not found" });
+        }
+
+        // Emit real-time update to customers if availability changed
+        if (availability !== undefined) {
+            socketManager.emitToAll('menu-updated', {
+                itemId: menuItem._id,
+                name: menuItem.name,
+                availability: menuItem.availability,
+                updatedAt: new Date()
+            });
+            console.log(`[MenuController] Emitted menu-updated for ${menuItem.name}`);
         }
 
         return res.status(200).json({

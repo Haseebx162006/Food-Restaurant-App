@@ -1,16 +1,23 @@
 const MenuItem = require('../schemas/MenuItem');
 const Order = require('../schemas/Order');
+const socketManager = require('../utils/socketManager');
 
 /**
  * Generate a unique order ID: ORD-YYYYMMDD-XXX
+ * Uses LOCAL date (not UTC) for consistency
  */
 const generateOrderId = async () => {
-    const date = new Date();
-    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+    const now = new Date();
 
-    // Find the count of orders today to increment XXX
-    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+    // Use LOCAL date components (not UTC) for the order ID
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}${month}${day}`; // YYYYMMDD in local time
+
+    // Create date range for TODAY in local time
+    const startOfDay = new Date(year, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(year, now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
     const count = await Order.countDocuments({
         createdAt: { $gte: startOfDay, $lte: endOfDay }
@@ -21,7 +28,7 @@ const generateOrderId = async () => {
 };
 
 /**
- * Calculate order totals: subtotal, tax (5%), delivery (Rs. 50), grandTotal
+ * Calculate order totals: subtotal, tax (5%), delivery (Rs. 150), grandTotal
  */
 const calculateOrderTotals = (items) => {
     const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -62,19 +69,57 @@ const validateAndFetchItems = async (itemsInput) => {
 };
 
 /**
- * Placeholder for WebSocket notifications to Admin
+ * Notify admin dashboard of a new order via WebSocket
+ * Emits 'new-order' event to all connected admin users
+ * @param {Object} order - The order document
  */
 const notifyAdminNewOrder = (order) => {
     console.log(`[WebSocket] Notifying Admin: New Order ${order.orderId}`);
-    // Future: io.emit('newOrder', order);
+
+    // Emit to admin-room where all admin sockets are connected
+    socketManager.emitToAdmin('new-order', {
+        orderId: order.orderId,
+        orderDbId: order._id,
+        customerId: order.customerId,
+        customerName: order.customerName,
+        items: order.items,
+        grandTotal: order.grandTotal,
+        orderStatus: order.orderStatus,
+        createdAt: order.createdAt
+    });
 };
 
 /**
- * Placeholder for WebSocket notifications to Customer
+ * Notify customer of order status update via WebSocket
+ * Emits 'order-status-updated' event to the customer's order room
+ * @param {Object} order - The updated order document
  */
 const notifyCustomerOrderStatus = (order) => {
     console.log(`[WebSocket] Notifying Customer: Order ${order.orderId} is now ${order.orderStatus}`);
-    // Future: io.to(order.customerId).emit('orderUpdate', order);
+
+    // Emit to order-specific room where customer is listening
+    socketManager.emitToCustomer(order.orderId, 'order-status-updated', {
+        orderId: order.orderId,
+        status: order.orderStatus,
+        updatedAt: order.updatedAt,
+        message: getStatusMessage(order.orderStatus)
+    });
+};
+
+/**
+ * Get user-friendly message for order status
+ * @param {string} status - The order status
+ * @returns {string} User-friendly message
+ */
+const getStatusMessage = (status) => {
+    const messages = {
+        'Pending': 'Your order has been received and is awaiting confirmation.',
+        'Preparing': 'Great news! Your order is now being prepared.',
+        'Ready': 'Your order is ready for pickup/delivery!',
+        'Delivered': 'Your order has been delivered. Enjoy your meal!',
+        'Cancelled': 'Your order has been cancelled.'
+    };
+    return messages[status] || 'Order status updated.';
 };
 
 module.exports = {

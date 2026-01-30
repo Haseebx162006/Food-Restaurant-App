@@ -8,7 +8,7 @@ const invoiceSchema = new mongoose.Schema({
     },
     customer_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'user',  // Model is registered as 'user' (lowercase)
         required: true
     },
     order_id: {

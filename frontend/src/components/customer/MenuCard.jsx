@@ -13,13 +13,23 @@ const MenuCard = ({ item }) => {
         toast.success(`${name} added to cart!`);
     };
 
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return '/images/food-placeholder.jpg';
+        if (imagePath.startsWith('http')) return imagePath;
+        // Use a safe fallback for base URL
+        const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const baseUrl = rawUrl.endsWith('/api') ? rawUrl.slice(0, -4) : rawUrl;
+        return `${baseUrl}${imagePath}`;
+    };
+
     return (
         <div className={`group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full ${!availability ? 'opacity-75 grayscale-[0.5]' : ''}`}>
             <div className="relative h-48 overflow-hidden">
                 <img
-                    src={image || '/images/food-placeholder.jpg'}
+                    src={getImageUrl(image)}
                     alt={name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => { e.target.src = '/images/food-placeholder.jpg'; }}
                 />
                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-secondary font-bold text-sm shadow-sm flex items-center">
                     <Tag size={14} className="mr-1" />

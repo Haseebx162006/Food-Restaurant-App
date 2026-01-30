@@ -75,7 +75,8 @@ exports.getAllOrders = async (req, res) => {
             data: orders
         });
     } catch (error) {
-        res.status(500).json({ success: false, msg: "Failed to fetch orders." });
+        console.error('[OrderController] getAllOrders error:', error);
+        res.status(500).json({ success: false, msg: "Failed to fetch orders.", error: error.message });
     }
 };
 
@@ -190,5 +191,138 @@ exports.cancelOrder = async (req, res) => {
         });
     } catch (error) {
         res.status(400).json({ success: false, msg: "Error cancelling order." });
+    }
+};
+
+/**
+ * 7. Get Dashboard Stats (Admin)
+ */
+exports.getDashboardStats = async (req, res) => {
+    try {
+        // Get total orders count
+        const totalOrders = await Order.countDocuments();
+
+        // Get pending orders count
+        const pendingOrders = await Order.countDocuments({ orderStatus: 'Pending' });
+
+        // Calculate total revenue from delivered orders
+        const revenueResult = await Order.aggregate([
+            { $match: { orderStatus: { $in: ['Delivered', 'Ready', 'Preparing'] } } },
+            { $group: { _id: null, total: { $sum: '$grandTotal' } } }
+        ]);
+        const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+
+        // Get unique customers count
+        const activeUsers = await Order.distinct('customerId').then(ids => ids.length);
+
+        res.status(200).json({
+            success: true,
+            stats: {
+                totalOrders,
+                pendingOrders,
+                totalRevenue,
+                activeUsers
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, msg: "Failed to fetch dashboard stats." });
+    }
+};
+
+/**
+ * 8. Get Analytics Data (Admin)
+ */
+exports.getAnalytics = async (req, res) => {
+    try {
+        console.log('[OrderController] getAnalytics called by user:', req.user?.email);
+
+        // Get date range for last 7 days
+        const today = new Date();
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        // 1. Revenue by day (last 7 days)
+        const revenueByDay = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: sevenDaysAgo },
+                    orderStatus: { $in: ['Delivered', 'Ready', 'Preparing', 'Pending'] }
+                }
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    revenue: { $sum: "$grandTotal" },
+                    orders: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        // 2. Category distribution from order items
+        const categoryDistribution = await Order.aggregate([
+            { $unwind: "$items" },
+            {
+                $lookup: {
+                    from: "menuitems",
+                    localField: "items.itemId",
+                    foreignField: "_id",
+                    as: "menuItem"
+                }
+            },
+            { $unwind: { path: "$menuItem", preserveNullAndEmptyArrays: true } },
+            {
+                $group: {
+                    _id: { $ifNull: ["$menuItem.category", "Unknown"] },
+                    count: { $sum: "$items.quantity" },
+                    revenue: { $sum: "$items.subtotal" }
+                }
+            },
+            { $sort: { count: -1 } }
+        ]);
+
+        // Calculate percentages for category distribution
+        const totalItems = categoryDistribution.reduce((sum, cat) => sum + cat.count, 0);
+        const categoryWithPercent = categoryDistribution.map(cat => ({
+            category: cat._id,
+            count: cat.count,
+            revenue: cat.revenue,
+            percent: totalItems > 0 ? Math.round((cat.count / totalItems) * 100) : 0
+        }));
+
+        // 3. Top selling items
+        const topSellingItems = await Order.aggregate([
+            { $unwind: "$items" },
+            {
+                $group: {
+                    _id: "$items.itemName",
+                    sales: { $sum: "$items.quantity" },
+                    revenue: { $sum: "$items.subtotal" }
+                }
+            },
+            { $sort: { sales: -1 } },
+            { $limit: 5 }
+        ]);
+
+        // 4. Total sales today
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const salesToday = await Order.countDocuments({
+            createdAt: { $gte: startOfToday }
+        });
+
+        res.status(200).json({
+            success: true,
+            analytics: {
+                revenueByDay,
+                categoryDistribution: categoryWithPercent,
+                topSellingItems,
+                salesToday
+            }
+        });
+    } catch (error) {
+        console.error('[OrderController] getAnalytics error:', error);
+        res.status(500).json({ success: false, msg: "Failed to fetch analytics data." });
     }
 };

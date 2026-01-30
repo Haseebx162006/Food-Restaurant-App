@@ -2,7 +2,12 @@ import api from './api';
 
 const adminService = {
     getDashboardStats: async () => {
-        const response = await api.get('/auth/admin');
+        const response = await api.get('/orders/stats');
+        return response.data;
+    },
+
+    getAnalytics: async () => {
+        const response = await api.get('/orders/analytics');
         return response.data;
     },
 
@@ -19,11 +24,13 @@ const adminService = {
 
     // Menu Management for Admin
     createMenuItem: async (itemData) => {
+        // Axios handles FormData boundary automatically if Content-Type is NOT set manually
         const response = await api.post('/menu/createitem', itemData);
         return response.data;
     },
 
     updateMenuItem: async (id, itemData) => {
+        // Axios handles FormData boundary automatically if Content-Type is NOT set manually
         const response = await api.put(`/menu/updateitem/${id}`, itemData);
         return response.data;
     },

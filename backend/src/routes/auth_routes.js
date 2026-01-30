@@ -11,8 +11,8 @@ router.post('/signup', signUp)
 router.post('/login', login)
 
 
-// for admin route
-router.get('/admin', adminOnly, (req, res) => {
+// for admin route - check authentication first, then admin role
+router.get('/admin', protect, adminOnly, (req, res) => {
     res.json({
         success: true,
         message: "Welcome Admin"

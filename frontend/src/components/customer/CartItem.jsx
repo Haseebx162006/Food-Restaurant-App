@@ -2,13 +2,23 @@ import React from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 
 const CartItem = ({ item, updateQuantity, removeFromCart }) => {
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return '/images/food-placeholder.jpg';
+        if (imagePath.startsWith('http')) return imagePath;
+        // Use a safe fallback for base URL
+        const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const baseUrl = rawUrl.endsWith('/api') ? rawUrl.slice(0, -4) : rawUrl;
+        return `${baseUrl}${imagePath}`;
+    };
+
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 mb-4 hover:shadow-md transition-shadow">
             <div className="flex items-center w-full sm:w-auto mb-4 sm:mb-0">
                 <img
-                    src={item.image || '/images/food-placeholder.jpg'}
+                    src={getImageUrl(item.image)}
                     alt={item.name}
                     className="w-20 h-20 object-cover rounded-xl"
+                    onError={(e) => { e.target.src = '/images/food-placeholder.jpg'; }}
                 />
                 <div className="ml-4">
                     <h4 className="text-lg font-heading font-bold text-dark">{item.name}</h4>

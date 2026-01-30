@@ -42,17 +42,17 @@ export const SocketProvider = ({ children }) => {
         }
     }, [isAuthenticated, token]);
 
-    const emit = (eventName, data) => {
+    const emit = React.useCallback((eventName, data) => {
         if (socket) socket.emit(eventName, data);
-    };
+    }, [socket]);
 
-    const on = (eventName, callback) => {
+    const on = React.useCallback((eventName, callback) => {
         if (socket) socket.on(eventName, callback);
-    };
+    }, [socket]);
 
-    const off = (eventName) => {
+    const off = React.useCallback((eventName) => {
         if (socket) socket.off(eventName);
-    };
+    }, [socket]);
 
     return (
         <SocketContext.Provider value={{ socket, isConnected, emit, on, off }}>

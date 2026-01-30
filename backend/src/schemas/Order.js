@@ -8,7 +8,7 @@ const OrderSchema = new mongoose.Schema({
     },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'user',  // Model is registered as 'user' (lowercase)
         required: true
     },
     items: [

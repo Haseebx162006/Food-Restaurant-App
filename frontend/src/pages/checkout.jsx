@@ -15,12 +15,13 @@ export default function Checkout() {
     const { user } = useAuth();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
     useEffect(() => {
-        if (cartItems.length === 0 && !isLoading) {
+        if (cartItems.length === 0 && !isLoading && !isRedirecting) {
             router.push('/menu');
         }
-    }, [cartItems, router, isLoading]);
+    }, [cartItems, router, isLoading, isRedirecting]);
 
     const handlePlaceOrder = async (deliveryData) => {
         setIsLoading(true);
@@ -42,6 +43,7 @@ export default function Checkout() {
 
             if (response.success) {
                 toast.success('Order placed successfully!');
+                setIsRedirecting(true);
                 clearCart();
                 // Redirect to confirmation or tracking
                 router.push(`/order/${response.orderId}`);

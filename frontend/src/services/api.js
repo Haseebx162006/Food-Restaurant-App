@@ -4,9 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
     baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    // Content-Type is handled automatically by Axios based on the data type
 });
 
 // Add a request interceptor to include the auth token

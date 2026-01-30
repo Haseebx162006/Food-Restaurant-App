@@ -14,9 +14,14 @@ export const CartProvider = ({ children }) => {
 
     useEffect(() => {
         // Load cart from localStorage
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            setCartItems(JSON.parse(savedCart));
+        try {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart && savedCart !== 'undefined') {
+                setCartItems(JSON.parse(savedCart));
+            }
+        } catch (error) {
+            console.error('Failed to parse cart from localStorage:', error);
+            localStorage.removeItem('cart');
         }
     }, []);
 

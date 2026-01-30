@@ -3,8 +3,8 @@ import { MapPin, Phone, User, Calendar, Hash } from 'lucide-react';
 
 const OrderDetails = ({ order }) => {
     return (
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:shadow-none print:rounded-none print:border-none">
+            <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 print:bg-white print:px-0">
                 <div>
                     <h3 className="text-xl font-heading font-bold text-dark flex items-center">
                         <Hash className="mr-2 text-primary" size={20} />
@@ -15,7 +15,7 @@ const OrderDetails = ({ order }) => {
                         Placed on {new Date(order.createdAt).toLocaleString()}
                     </p>
                 </div>
-                <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${order.orderStatus === 'Delivered' ? 'bg-success text-white' :
+                <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest print:bg-transparent print:text-black print:border print:border-gray-200 ${order.orderStatus === 'Delivered' ? 'bg-success text-white' :
                     order.orderStatus === 'Cancelled' ? 'bg-error text-white' :
                         'bg-red-100 text-primary'
                     }`}>
@@ -23,8 +23,8 @@ const OrderDetails = ({ order }) => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                <div className="p-8 border-r border-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 print:grid-cols-2">
+                <div className="p-8 border-r border-gray-50 print:border-r print:border-gray-100">
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Delivery Information</h4>
                     <div className="space-y-4">
                         <div className="flex items-start">
@@ -53,7 +53,7 @@ const OrderDetails = ({ order }) => {
 
                 <div className="p-8">
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Order Items</h4>
-                    <div className="space-y-4 max-h-60 overflow-y-auto pr-2 scrollbar-thin">
+                    <div className="space-y-4 max-h-60 overflow-y-auto pr-2 scrollbar-thin print:max-h-none print:overflow-visible print:pr-0">
                         {order.items.map((item, idx) => (
                             <div key={idx} className="flex justify-between items-center text-sm">
                                 <div className="flex items-center">
