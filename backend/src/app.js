@@ -26,7 +26,10 @@ app.use(express.urlencoded({ extended: true }))
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
-app.use("/api/auth", auth_routes)
+app.use("/api/auth", (req, res, next) => {
+    console.log(`[App] Incoming request to /api/auth: ${req.method} ${req.url}`);
+    next();
+}, auth_routes)
 app.use("/api/menu", menu_routes)
 app.use("/api/orders", order_routes)
 app.use("/api/invoices", invoice_routes)
@@ -40,12 +43,12 @@ app.use((err, req, res, next) => {
 
     // Handle multer errors
     if (err.name === 'MulterError') {
-        return res.status(400).json({ success: false, msg: err.message });
+        return res.status(400).json({ success: false, message: err.message });
     }
 
     res.status(err.status || 500).json({
         success: false,
-        msg: err.message || 'Internal server error'
+        message: err.message || 'Internal server error'
     });
 });
 

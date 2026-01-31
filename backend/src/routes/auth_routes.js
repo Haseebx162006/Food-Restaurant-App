@@ -1,5 +1,5 @@
 const express = require('express')
-const { signUp, login, logout } = require('../controllers/authcontroller')
+const { signUp, login, logout, updateProfile } = require('../controllers/authcontroller')
 const router = express.Router()
 const { protect, adminOnly } = require('../middleware/auth_middleware')
 
@@ -22,8 +22,20 @@ router.get('/admin', protect, adminOnly, (req, res) => {
 
 // for viewing the profile
 router.get('/profile', protect, (req, res) => {
-    res.json(req.user)
+    const user = req.user;
+    res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        role: user.role,
+        createdAt: user.createdAt
+    })
 })
+
+// for updating the profile
+router.put('/profile', protect, updateProfile)
 
 router.get('/logout', logout)
 

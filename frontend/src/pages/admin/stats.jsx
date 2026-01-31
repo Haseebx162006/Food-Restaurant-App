@@ -92,11 +92,18 @@ export default function AdminStats() {
                     {/* Charts Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                         {/* Revenue Growth Chart */}
-                        <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                            <h3 className="text-lg font-bold text-dark mb-8 flex items-center">
-                                <TrendingUp size={20} className="mr-3 text-success" />
-                                Revenue Growth (Last 7 Days)
-                            </h3>
+                        <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-8">
+                                <h3 className="text-lg font-bold text-dark flex items-center">
+                                    <TrendingUp size={20} className="mr-3 text-success" />
+                                    Revenue Growth (Last 7 Days)
+                                </h3>
+                                {analytics.trends?.revenue !== undefined && (
+                                    <div className={`px-3 py-1 rounded-full text-xs font-black flex items-center ${analytics.trends.revenue >= 0 ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}`}>
+                                        {analytics.trends.revenue >= 0 ? '+' : ''}{analytics.trends.revenue}%
+                                    </div>
+                                )}
+                            </div>
 
                             {analytics.revenueByDay.length > 0 ? (
                                 <div className="h-64 flex items-end justify-between space-x-2">

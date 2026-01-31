@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 
 const CartItem = ({ item, updateQuantity, removeFromCart }) => {
@@ -14,11 +15,12 @@ const CartItem = ({ item, updateQuantity, removeFromCart }) => {
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 mb-4 hover:shadow-md transition-shadow">
             <div className="flex items-center w-full sm:w-auto mb-4 sm:mb-0">
-                <img
+                <Image
                     src={getImageUrl(item.image)}
                     alt={item.name}
-                    className="w-20 h-20 object-cover rounded-xl"
-                    onError={(e) => { e.target.src = '/images/food-placeholder.jpg'; }}
+                    width={80}
+                    height={80}
+                    className="object-cover rounded-xl"
                 />
                 <div className="ml-4">
                     <h4 className="text-lg font-heading font-bold text-dark">{item.name}</h4>

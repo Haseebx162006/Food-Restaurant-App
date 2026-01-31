@@ -209,11 +209,12 @@ export default function AdminMenu() {
                                     <tr key={item._id} className="hover:bg-gray-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
-                                                <img
+                                                <Image
                                                     src={getImageUrl(item.image)}
-                                                    alt=""
-                                                    className="h-10 w-10 rounded-lg object-cover mr-3"
-                                                    onError={(e) => { e.target.src = '/images/food-placeholder.jpg'; }}
+                                                    alt={item.name}
+                                                    width={40}
+                                                    height={40}
+                                                    className="rounded-lg object-contain bg-gray-50 mr-3"
                                                 />
                                                 <div>
                                                     <p className="text-sm font-bold text-dark">{item.name}</p>
@@ -280,7 +281,7 @@ export default function AdminMenu() {
                                     {/* Preview */}
                                     <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
                                         {imagePreview ? (
-                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
                                         ) : (
                                             <ImageIcon size={32} className="text-gray-300" />
                                         )}

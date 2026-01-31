@@ -9,7 +9,7 @@ exports.createOrder = async (req, res) => {
         const { items, customerName, customerPhone, deliveryAddress, notes } = req.body;
 
         if (!items || items.length === 0) {
-            return res.status(400).json({ success: false, msg: "Cart items are required." });
+            return res.status(400).json({ success: false, message: "Cart items are required." });
         }
 
         // Validate items and fetch details from DB
@@ -49,7 +49,7 @@ exports.createOrder = async (req, res) => {
     } catch (error) {
         res.status(400).json({
             success: false,
-            msg: error.message || "Error creating order."
+            message: error.message || "Error creating order."
         });
     }
 };
@@ -76,7 +76,7 @@ exports.getAllOrders = async (req, res) => {
         });
     } catch (error) {
         console.error('[OrderController] getAllOrders error:', error);
-        res.status(500).json({ success: false, msg: "Failed to fetch orders.", error: error.message });
+        res.status(500).json({ success: false, message: "Failed to fetch orders.", error: error.message });
     }
 };
 
@@ -94,7 +94,7 @@ exports.getMyOrders = async (req, res) => {
             data: orders
         });
     } catch (error) {
-        res.status(500).json({ success: false, msg: "Failed to fetch your orders." });
+        res.status(500).json({ success: false, message: "Failed to fetch your orders." });
     }
 };
 
@@ -103,17 +103,23 @@ exports.getMyOrders = async (req, res) => {
  */
 exports.getSingleOrder = async (req, res) => {
     try {
-        const order = await Order.findOne({
-            $or: [{ _id: req.params.id }, { orderId: req.params.id }]
-        }).populate('customerId', 'name email');
+        const mongoose = require('mongoose');
+        const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id);
+
+        const query = isObjectId
+            ? { $or: [{ _id: req.params.id }, { orderId: req.params.id }] }
+            : { orderId: req.params.id };
+
+        console.log(`[OrderController] getSingleOrder: id=${req.params.id}, query=${JSON.stringify(query)}`);
+        const order = await Order.findOne(query).populate('customerId', 'name email');
 
         if (!order) {
-            return res.status(404).json({ success: false, msg: "Order not found." });
+            return res.status(404).json({ success: false, message: "Order not found." });
         }
 
         // Security: Ensure owner or admin is requesting
         if (req.user.role !== 'admin' && order.customerId._id.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ success: false, msg: "Unauthorized to view this order." });
+            return res.status(401).json({ success: false, message: "Unauthorized to view this order." });
         }
 
         res.status(200).json({
@@ -121,7 +127,8 @@ exports.getSingleOrder = async (req, res) => {
             data: order
         });
     } catch (error) {
-        res.status(400).json({ success: false, msg: "Invalid Order ID." });
+        console.error('[OrderController] getSingleOrder error:', error);
+        res.status(400).json({ success: false, message: "Error fetching order detail." });
     }
 };
 
@@ -134,7 +141,7 @@ exports.updateOrderStatus = async (req, res) => {
         const validStatuses = ["Pending", "Preparing", "Ready", "Delivered", "Cancelled"];
 
         if (!validStatuses.includes(orderStatus)) {
-            return res.status(400).json({ success: false, msg: "Invalid order status." });
+            return res.status(400).json({ success: false, message: "Invalid order status." });
         }
 
         const order = await Order.findByIdAndUpdate(
@@ -144,7 +151,7 @@ exports.updateOrderStatus = async (req, res) => {
         );
 
         if (!order) {
-            return res.status(404).json({ success: false, msg: "Order not found." });
+            return res.status(404).json({ success: false, message: "Order not found." });
         }
 
         // WebSocket Notify Customer
@@ -156,7 +163,7 @@ exports.updateOrderStatus = async (req, res) => {
             data: order
         });
     } catch (error) {
-        res.status(400).json({ success: false, msg: "Error updating status." });
+        res.status(400).json({ success: false, message: "Error updating status." });
     }
 };
 
@@ -168,14 +175,14 @@ exports.cancelOrder = async (req, res) => {
         const order = await Order.findById(req.params.id);
 
         if (!order) {
-            return res.status(404).json({ success: false, msg: "Order not found." });
+            return res.status(404).json({ success: false, message: "Order not found." });
         }
 
         // Logic check: Only Pending or Preparing can be cancelled
         if (!["Pending", "Preparing"].includes(order.orderStatus)) {
             return res.status(400).json({
                 success: false,
-                msg: `Order cannot be cancelled as it is already ${order.orderStatus}.`
+                message: `Order cannot be cancelled as it is already ${order.orderStatus}.`
             });
         }
 
@@ -190,29 +197,48 @@ exports.cancelOrder = async (req, res) => {
             message: "Order cancelled successfully."
         });
     } catch (error) {
-        res.status(400).json({ success: false, msg: "Error cancelling order." });
+        res.status(400).json({ success: false, message: "Error cancelling order." });
     }
 };
 
-/**
- * 7. Get Dashboard Stats (Admin)
- */
 exports.getDashboardStats = async (req, res) => {
     try {
-        // Get total orders count
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        const fourteenDaysAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+
+        // 1. Current Period Stats (Last 7 Days)
+        const currentOrders = await Order.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+        const currentRevenueResult = await Order.aggregate([
+            { $match: { createdAt: { $gte: sevenDaysAgo }, orderStatus: { $in: ['Delivered', 'Ready', 'Preparing'] } } },
+            { $group: { _id: null, total: { $sum: '$grandTotal' } } }
+        ]);
+        const currentRevenue = currentRevenueResult.length > 0 ? currentRevenueResult[0].total : 0;
+        const currentUsers = await Order.distinct('customerId', { createdAt: { $gte: sevenDaysAgo } }).then(ids => ids.length);
+
+        // 2. Previous Period Stats (7-14 Days Ago)
+        const prevOrders = await Order.countDocuments({ createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo } });
+        const prevRevenueResult = await Order.aggregate([
+            { $match: { createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }, orderStatus: { $in: ['Delivered', 'Ready', 'Preparing'] } } },
+            { $group: { _id: null, total: { $sum: '$grandTotal' } } }
+        ]);
+        const prevRevenue = prevRevenueResult.length > 0 ? prevRevenueResult[0].total : 0;
+        const prevUsers = await Order.distinct('customerId', { createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo } }).then(ids => ids.length);
+
+        // 3. Helper for Growth Percentage
+        const calculateGrowth = (current, prev) => {
+            if (prev === 0) return current > 0 ? 100 : 0;
+            return Math.round(((current - prev) / prev) * 100);
+        };
+
+        // 4. Lifetime Stats (for basic display)
         const totalOrders = await Order.countDocuments();
-
-        // Get pending orders count
         const pendingOrders = await Order.countDocuments({ orderStatus: 'Pending' });
-
-        // Calculate total revenue from delivered orders
-        const revenueResult = await Order.aggregate([
+        const lifetimeRevenueResult = await Order.aggregate([
             { $match: { orderStatus: { $in: ['Delivered', 'Ready', 'Preparing'] } } },
             { $group: { _id: null, total: { $sum: '$grandTotal' } } }
         ]);
-        const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
-
-        // Get unique customers count
+        const totalRevenue = lifetimeRevenueResult.length > 0 ? lifetimeRevenueResult[0].total : 0;
         const activeUsers = await Order.distinct('customerId').then(ids => ids.length);
 
         res.status(200).json({
@@ -221,11 +247,18 @@ exports.getDashboardStats = async (req, res) => {
                 totalOrders,
                 pendingOrders,
                 totalRevenue,
-                activeUsers
+                activeUsers,
+                trends: {
+                    orders: calculateGrowth(currentOrders, prevOrders),
+                    revenue: calculateGrowth(currentRevenue, prevRevenue),
+                    users: calculateGrowth(currentUsers, prevUsers),
+                    pending: calculateGrowth(pendingOrders, 0) // Just for structure
+                }
             }
         });
     } catch (error) {
-        res.status(500).json({ success: false, msg: "Failed to fetch dashboard stats." });
+        console.error('[OrderController] getDashboardStats error:', error);
+        res.status(500).json({ success: false, message: "Failed to fetch dashboard stats." });
     }
 };
 
@@ -312,17 +345,42 @@ exports.getAnalytics = async (req, res) => {
             createdAt: { $gte: startOfToday }
         });
 
+        // 5. Growth Trends (Shared logic with dashboard)
+        const trendNow = new Date();
+        const trendSevenDaysAgo = new Date(trendNow.getTime() - (7 * 24 * 60 * 60 * 1000));
+        const trendFourteenDaysAgo = new Date(trendNow.getTime() - (14 * 24 * 60 * 60 * 1000));
+
+        const currentRevRes = await Order.aggregate([
+            { $match: { createdAt: { $gte: trendSevenDaysAgo }, orderStatus: { $in: ['Delivered', 'Ready', 'Preparing'] } } },
+            { $group: { _id: null, total: { $sum: '$grandTotal' } } }
+        ]);
+        const currentRev = currentRevRes.length > 0 ? currentRevRes[0].total : 0;
+
+        const prevRevRes = await Order.aggregate([
+            { $match: { createdAt: { $gte: trendFourteenDaysAgo, $lt: trendSevenDaysAgo }, orderStatus: { $in: ['Delivered', 'Ready', 'Preparing'] } } },
+            { $group: { _id: null, total: { $sum: '$grandTotal' } } }
+        ]);
+        const prevRev = prevRevRes.length > 0 ? prevRevRes[0].total : 0;
+
+        const calculateGrowth = (current, prev) => {
+            if (prev === 0) return current > 0 ? 100 : 0;
+            return Math.round(((current - prev) / prev) * 100);
+        };
+
         res.status(200).json({
             success: true,
             analytics: {
                 revenueByDay,
                 categoryDistribution: categoryWithPercent,
                 topSellingItems,
-                salesToday
+                salesToday,
+                trends: {
+                    revenue: calculateGrowth(currentRev, prevRev)
+                }
             }
         });
     } catch (error) {
         console.error('[OrderController] getAnalytics error:', error);
-        res.status(500).json({ success: false, msg: "Failed to fetch analytics data." });
+        res.status(500).json({ success: false, message: "Failed to fetch analytics data." });
     }
 };

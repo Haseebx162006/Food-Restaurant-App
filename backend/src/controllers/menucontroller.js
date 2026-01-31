@@ -29,22 +29,22 @@ exports.createMenuItem = async (req, res) => {
         // validation
         if (!name || typeof name !== 'string') {
             return res.status(400).json(
-                { msg: "Error in name!" }
+                { message: "Error in name!" }
             );
         }
         if (!description || typeof description !== 'string') {
             return res.status(400).json({
-                msg: "Error in description!"
+                message: "Error in description!"
             });
         }
         if (parsedPrice === undefined || isNaN(parsedPrice)) {
-            return res.status(400).json({ msg: "Error in price!" });
+            return res.status(400).json({ message: "Error in price!" });
         }
         if (!category || typeof category !== 'string') {
-            return res.status(400).json({ msg: "Error in category!" });
+            return res.status(400).json({ message: "Error in category!" });
         }
         if (parsedAvailability === undefined || typeof parsedAvailability !== 'boolean') {
-            return res.status(400).json({ msg: "Error in availability!" });
+            return res.status(400).json({ message: "Error in availability!" });
         }
 
         const menuItem = await MenuItem.create({
@@ -65,7 +65,7 @@ exports.createMenuItem = async (req, res) => {
         console.error('[MenuController] createMenuItem CRITICAL ERROR:', error);
         return res.status(500).json({
             success: false,
-            msg: "Server error while creating menu item",
+            message: "Server error while creating menu item",
             error: error.message,
             stack: error.stack // Temporarily show stack for debugging
         });
@@ -96,16 +96,16 @@ exports.updateMenuItem = async (req, res) => {
             : undefined;
 
         if (name && typeof name !== 'string') {
-            return res.status(400).json({ msg: "Name must be a string" });
+            return res.status(400).json({ message: "Name must be a string" });
         }
         if (description && typeof description !== 'string') {
-            return res.status(400).json({ msg: "Description must be a string" });
+            return res.status(400).json({ message: "Description must be a string" });
         }
         if (parsedPrice !== undefined && isNaN(parsedPrice)) {
-            return res.status(400).json({ msg: "Price must be a number" });
+            return res.status(400).json({ message: "Price must be a number" });
         }
         if (category && typeof category !== 'string') {
-            return res.status(400).json({ msg: "Category must be a string" });
+            return res.status(400).json({ message: "Category must be a string" });
         }
 
         // Build update object with only provided fields
@@ -146,7 +146,7 @@ exports.updateMenuItem = async (req, res) => {
     } catch (error) {
         return res.status(400).json({
             success: false,
-            msg: "Invalid menu item ID",
+            message: "Invalid menu item ID",
             error: error.message
         });
     }
@@ -164,18 +164,18 @@ exports.deleteItem = async (req, res) => {
         );
 
         if (!menuItem) {
-            return res.status(404).json({ msg: "Menu item not found" });
+            return res.status(404).json({ message: "Menu item not found" });
         }
 
         return res.status(200).json({
             success: true,
-            msg: "Menu item deleted successfully"
+            message: "Menu item deleted successfully"
         });
 
     } catch (error) {
         return res.status(400).json({
             success: false,
-            msg: "Invalid menu item ID",
+            message: "Invalid menu item ID",
             error: error.message
         });
     }
@@ -195,7 +195,7 @@ exports.getAllItems = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            msg: "Failed to fetch menu items",
+            message: "Failed to fetch menu items",
             error: error.message
         });
     }
@@ -214,7 +214,7 @@ exports.filterByCategory = async (req, res) => {
         if (items.length === 0) {
             return res.status(404).json({
                 success: false,
-                msg: "No items found in this category"
+                message: "No items found in this category"
             });
         }
 
@@ -226,7 +226,7 @@ exports.filterByCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            msg: "Error filtering items",
+            message: "Error filtering items",
             error: error.message
         });
     }
@@ -245,7 +245,7 @@ exports.getSingleMenuItem = async (req, res) => {
         if (!menuItem) {
             return res.status(404).json({
                 success: false,
-                msg: "Menu item not found"
+                message: "Menu item not found"
             });
         }
 
@@ -257,7 +257,7 @@ exports.getSingleMenuItem = async (req, res) => {
     } catch (error) {
         return res.status(400).json({
             success: false,
-            msg: "Invalid menu item ID",
+            message: "Invalid menu item ID",
             error: error.message
         });
     }

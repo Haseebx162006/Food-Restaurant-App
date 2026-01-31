@@ -30,6 +30,11 @@ const authService = {
 
     getToken: () => {
         return localStorage.getItem('token');
+    },
+
+    updateProfile: async (userData) => {
+        const response = await api.put('/auth/profile', userData);
+        return response.data;
     }
 };
 

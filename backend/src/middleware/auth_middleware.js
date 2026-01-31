@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../schemas/User');
 
 exports.protect = async (req, res, next) => {
+    console.log('[ProtectMiddleware] Request arrived');
     try {
         let token;
 
@@ -16,19 +17,21 @@ exports.protect = async (req, res, next) => {
         //  If no token
         if (!token) {
             return res.status(401).json({
-                msg: "Not authorized, token missing"
+                message: "Not authorized, token missing"
             });
         }
 
         //  Verify token
+        console.log('[ProtectMiddleware] Verifying token...');
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        console.log('[ProtectMiddleware] Token decoded:', decoded);
 
         //  Get user from DB
         req.user = await User.findById(decoded.id).select("-password");
 
         if (!req.user) {
             return res.status(401).json({
-                msg: "User not found"
+                message: "User not found"
             });
         }
 
@@ -36,25 +39,26 @@ exports.protect = async (req, res, next) => {
         return next();
 
     } catch (error) {
+        console.error('[ProtectMiddleware Error]', error.message);
         return res.status(401).json({
-            msg: "Not authorized, token invalid"
+            message: "Not authorized, token invalid"
         });
     }
 };
-exports.adminOnly = async (req, res,next) => {
+exports.adminOnly = async (req, res, next) => {
     try {
-        if(req.user && req.user.role === "admin"){
+        if (req.user && req.user.role === "admin") {
             return next()
         }
-         else {
+        else {
             res.status(401).json({
                 message: "Error in access. You are not the admin!"
             })
         }
-        
+
     } catch (error) {
         res.status(401).json({
-            msg:" error while decoding the token"
+            message: " error while decoding the token"
         })
     }
 }

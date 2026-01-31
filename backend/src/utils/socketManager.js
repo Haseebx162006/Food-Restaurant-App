@@ -1,18 +1,4 @@
-/**
- * Socket Manager Utility
- * 
- * Purpose: Central utility for managing Socket.IO operations across the application.
- * This allows any part of the backend (controllers, services) to emit socket events
- * without needing direct access to the io instance.
- * 
- * Design Pattern: Singleton pattern - stores one global io instance
- * 
- * Usage Example:
- *   const socketManager = require('../utils/socketManager');
- *   socketManager.emitToAdmin('new-order', orderData);
- */
 
-// Store the Socket.IO instance globally
 let io = null;
 
 /**

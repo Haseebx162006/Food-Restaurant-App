@@ -65,10 +65,9 @@ export default function AdminDashboard() {
                 setOrders(prev => prev.map(o => o._id === id ? { ...o, orderStatus: status } : o));
                 toast.success(`Order status updated to ${status}`);
 
-                // Update local stats
-                if (status === 'Delivered') {
-                    setStats(prev => ({ ...prev, pendingOrders: prev.pendingOrders - 1 }));
-                }
+                // Refresh stats from server to ensure trends and counts are 100% accurate
+                const statsRes = await adminService.getDashboardStats();
+                if (statsRes.success) setStats(statsRes.stats);
             }
         } catch (err) {
             toast.error('Failed to update status');
@@ -98,10 +97,10 @@ export default function AdminDashboard() {
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                        <StatCard title="Total Orders" value={stats.totalOrders} icon={ShoppingBag} trend={12} color="primary" />
-                        <StatCard title="Total Revenue" value={`Rs. ${stats.totalRevenue}`} icon={DollarSign} trend={8} color="success" />
-                        <StatCard title="Pending Orders" value={stats.pendingOrders} icon={Activity} trend={-5} color="error" />
-                        <StatCard title="Active Customers" value={stats.activeUsers || 0} icon={Users} trend={2} color="secondary" />
+                        <StatCard title="Total Orders" value={stats.totalOrders} icon={ShoppingBag} trend={stats.trends?.orders || 0} color="primary" />
+                        <StatCard title="Total Revenue" value={`Rs. ${stats.totalRevenue}`} icon={DollarSign} trend={stats.trends?.revenue || 0} color="success" />
+                        <StatCard title="Pending Orders" value={stats.pendingOrders} icon={Activity} trend={stats.trends?.pending || 0} color="error" />
+                        <StatCard title="Active Customers" value={stats.activeUsers || 0} icon={Users} trend={stats.trends?.users || 0} color="secondary" />
                     </div>
 
                     {/* Orders Section */}
@@ -114,8 +113,8 @@ export default function AdminDashboard() {
                                         key={s}
                                         onClick={() => setFilter(s)}
                                         className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filter === s
-                                                ? 'bg-secondary text-white'
-                                                : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                                            ? 'bg-secondary text-white'
+                                            : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                                             }`}
                                     >
                                         {s}

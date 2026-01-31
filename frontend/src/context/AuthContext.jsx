@@ -91,16 +91,22 @@ export const AuthProvider = ({ children }) => {
     };
 
     const updateProfile = async (userData) => {
-        // This endpoint wasn't explicitly in the backend list but was in frontend requirements
-        // For now, we'll assume it exists or will be added.
         try {
             const response = await authService.updateProfile(userData);
             if (response.success) {
                 setUser(response.user);
                 return { success: true };
             }
+            return {
+                success: false,
+                message: response.message || response.msg || 'Update failed'
+            };
         } catch (err) {
-            return { success: false, message: err.response?.data?.message || 'Update failed' };
+            console.error('Profile update error:', err);
+            return {
+                success: false,
+                message: err.response?.data?.message || err.response?.data?.msg || 'Update failed'
+            };
         }
     };
 

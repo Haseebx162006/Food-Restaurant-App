@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Button from "@/components/common/Button";
 import { ShoppingBag, Star, Clock, Heart } from "lucide-react";
 
@@ -63,10 +64,13 @@ export default function Home() {
 
                     <div className="relative group">
                         <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700"></div>
-                        <img
+                        <Image
                             src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800"
                             alt="Delicious Food"
+                            width={800}
+                            height={600}
                             className="relative rounded-[40px] shadow-2xl z-10 animate-float"
+                            priority
                         />
                         {/* Info Blocks Below Image */}
                         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
