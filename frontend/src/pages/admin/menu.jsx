@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import adminService from '@/services/adminService';
+import Image from 'next/image';
 import menuService from '@/services/menuService';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Spinner from '@/components/common/Spinner';
