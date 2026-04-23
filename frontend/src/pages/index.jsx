@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 import menuService from "@/services/menuService";
+import MenuCard from "@/components/customer/MenuCard";
 
 const slides = [
     { image: "/hero/hero1.png" },
@@ -174,6 +175,26 @@ export default function Home() {
                                         />
                                     </div>
                                 </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            <section className="top-deals-section">
+                <div className="top-deals-container">
+                    <div className="top-deals-header">
+                        <h2 className="top-deals-title">Top Deals</h2>
+                    </div>
+
+                    <div className="top-deals-grid">
+                        {menuItems.slice(4, 8).map((item) => (
+                            <Link 
+                                href={`/menu/${item._id}`} 
+                                key={item._id}
+                                style={{ textDecoration: 'none' }}
+                            >
+                                <MenuCard item={item} />
                             </Link>
                         ))}
                     </div>
