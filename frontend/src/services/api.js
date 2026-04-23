@@ -4,10 +4,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
     baseURL: API_URL,
-    // Content-Type is handled automatically by Axios based on the data type
 });
 
-// Add a request interceptor to include the auth token
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
