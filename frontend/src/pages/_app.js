@@ -1,10 +1,5 @@
-/**
- * Next.js App Component
- * This is the root component that wraps all pages
- * Includes global providers, styles, and layout components
- */
-
 import '../styles/globals.css';
+import '../styles/Navbar.css';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { SocketProvider } from '../context/SocketContext';
@@ -18,16 +13,12 @@ function MyApp({ Component, pageProps }) {
         <AuthProvider>
             <SocketProvider>
                 <CartProvider>
-                    {/* Navigation Bar */}
                     <Navbar />
 
-                    {/* Main Page Content */}
                     <Component {...pageProps} />
 
-                    {/* Footer */}
                     <Footer />
 
-                    {/* Toast Notifications */}
                     <ToastContainer
                         position="top-right"
                         autoClose={3000}

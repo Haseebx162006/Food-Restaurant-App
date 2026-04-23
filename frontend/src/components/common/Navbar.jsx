@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import useAuth from '../../hooks/useAuth';
@@ -8,6 +8,20 @@ const Navbar = () => {
     const { user, isAuthenticated, logout } = useAuth();
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 20) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const navLinks = isAuthenticated
         ? user?.role === 'admin'
@@ -35,94 +49,89 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="bg-white shadow-md sticky top-0 z-50 print:hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    <div className="flex items-center">
-                        <Link href="/" className="flex-shrink-0 flex items-center">
-                            <span className="text-2xl font-heading font-bold text-primary">Food<span className="text-secondary">Express</span></span>
-                        </Link>
-                    </div>
+        <>
+            <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
+                <div className="nav-container">
+                    <Link href="/" className="nav-logo">
+                        <img src="/images/logo.jpg" alt="Logo" className="logo-img" />
+                        <div className="brand-name">
+                            SHEHWAR <span>BROAST</span>
+                        </div>
+                    </Link>
 
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-8">
+                    <div className="nav-links">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className={`text-sm font-medium transition-colors hover:text-primary ${router.pathname === link.href ? 'text-primary' : 'text-dark'
-                                    }`}
+                                className={`nav-link ${router.pathname === link.href ? 'active' : ''}`}
                             >
                                 {link.name}
                             </Link>
                         ))}
+                    </div>
 
+                    <div className="nav-actions">
                         {isAuthenticated && (
-                            <div className="flex items-center space-x-4 border-l pl-4">
-                                <Link href="/profile" className="text-dark hover:text-primary transition-colors">
+                            <>
+                                <Link href="/profile" className="icon-btn" title="Profile">
                                     <User size={20} />
                                 </Link>
                                 <button
                                     onClick={handleLogout}
-                                    className="text-dark hover:text-error transition-colors"
+                                    className="icon-btn"
                                     title="Logout"
                                 >
                                     <LogOut size={20} />
                                 </button>
-                            </div>
+                            </>
                         )}
-                    </div>
-
-                    {/* Mobile menu button */}
-                    <div className="md:hidden flex items-center">
+                        
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="text-dark hover:text-primary focus:outline-none"
+                            className="icon-btn mobile-menu-btn"
                         >
-                            {isMobileMenuOpen ? <X size={28} /> : <MenuIcon size={28} />}
+                            {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
                         </button>
                     </div>
                 </div>
-            </div>
+            </nav>
 
-            {/* Mobile Menu */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden bg-white border-t">
-                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        {navLinks.map((link) => (
+            <div className={`mobile-overlay ${isMobileMenuOpen ? 'open' : ''}`}>
+                <div className="mobile-links-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                    {navLinks.map((link, i) => (
+                        <Link
+                            key={link.name}
+                            href={link.href}
+                            className="mobile-nav-link"
+                            style={{ '--i': i }}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            {link.name}
+                        </Link>
+                    ))}
+                    {isAuthenticated && (
+                        <>
                             <Link
-                                key={link.name}
-                                href={link.href}
-                                className={`block px-3 py-2 rounded-md text-base font-medium ${router.pathname === link.href
-                                    ? 'bg-red-50 text-primary'
-                                    : 'text-dark hover:bg-gray-100'
-                                    }`}
+                                href="/profile"
+                                className="mobile-nav-link"
+                                style={{ '--i': navLinks.length }}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                {link.name}
+                                Profile
                             </Link>
-                        ))}
-                        {isAuthenticated && (
-                            <>
-                                <Link
-                                    href="/profile"
-                                    className="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-100"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    Profile
-                                </Link>
-                                <button
-                                    onClick={handleLogout}
-                                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-error hover:bg-red-50"
-                                >
-                                    Logout
-                                </button>
-                            </>
-                        )}
-                    </div>
+                            <button
+                                onClick={handleLogout}
+                                className="mobile-nav-link"
+                                style={{ '--i': navLinks.length + 1, color: 'var(--error)' }}
+                            >
+                                Logout
+                            </button>
+                        </>
+                    )}
                 </div>
-            )}
-        </nav>
+            </div>
+        </>
     );
 };
 
