@@ -1,11 +1,12 @@
 :root {
   --primary: #FF3131;
-  --secondary: #1E1E24;
+  --secondary: #3B82F6;
+  --accent: #FFD700;
   --success: #06A77D;
   --error: #D62828;
   --warning: #F77F00;
-  --neutral: #EEEEEE;
-  --dark: #222222;
+  --neutral: #F3F4F6;
+  --dark: #000000;
   --white: #FFFFFF;
 
   --font-heading: 'Poppins', sans-serif;
