@@ -142,6 +142,44 @@ export default function Home() {
                 </div>
             </section>
 
+            <section className="best-sellers-section">
+                <div className="best-sellers-container">
+                    <div className="best-sellers-header">
+                        <h2 className="best-sellers-title">Best Sellers</h2>
+                    </div>
+
+                    <div className="best-sellers-grid">
+                        {menuItems.slice(0, 4).map((item) => (
+                            <Link 
+                                href={`/menu/${item._id}`} 
+                                className="best-seller-card-link" 
+                                key={item._id}
+                                style={{ textDecoration: 'none' }}
+                            >
+                                <div className="best-seller-card">
+                                    <div className="kfc-stripes">
+                                        <div className="stripe"></div>
+                                        <div className="stripe"></div>
+                                        <div className="stripe"></div>
+                                    </div>
+                                    <h3 className="item-name">{item.name}</h3>
+                                    <div className="price-badge">
+                                        <span>Rs</span>{item.price}
+                                    </div>
+                                    <div className="item-image-box">
+                                        <img 
+                                            src={item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`) : '/images/food-placeholder.jpg'} 
+                                            alt={item.name} 
+                                            className="item-image"
+                                        />
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             <section className="py-24 bg-gray-50">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">

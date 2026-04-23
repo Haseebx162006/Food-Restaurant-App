@@ -2,6 +2,7 @@ import '../styles/globals.css';
 import '../styles/Navbar.css';
 import '../styles/Hero.css';
 import '../styles/MenuCarousel.css';
+import '../styles/BestSellers.css';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { SocketProvider } from '../context/SocketContext';
