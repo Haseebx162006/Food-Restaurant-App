@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, ChevronLeft, ChevronRight, ArrowRight, Star } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight, ArrowRight, Star, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import menuService from "@/services/menuService";
 import MenuCard from "@/components/customer/MenuCard";
+import { useCart } from "@/context/CartContext";
+import { toast } from "react-toastify";
 
 const slides = [
     { 
@@ -28,9 +30,21 @@ const slides = [
 ];
 
 export default function Home() {
+    const { addToCart } = useCart();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [menuItems, setMenuItems] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    const handleAddToCart = (e, item) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addToCart(item);
+        toast.success(`${item.name} added to bucket!`, {
+            position: "bottom-right",
+            autoClose: 2000,
+            theme: "dark"
+        });
+    };
 
     const nextHeroSlide = useCallback(() => {
         setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
@@ -143,77 +157,118 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="section-container">
+            <section className="section-container relative">
+                <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -z-10"></div>
+                
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="flex justify-between items-end mb-12"
+                    className="flex flex-col md:flex-row justify-between items-center md:items-end mb-16 text-center md:text-left gap-6"
                 >
-                    <div>
-                        <h2 className="text-4xl md:text-5xl font-black text-dark mb-2">Explore Menu</h2>
-                        <div className="w-20 h-1.5 bg-primary rounded-full"></div>
+                    <div className="relative">
+                        <motion.span 
+                            initial={{ x: -20, opacity: 0 }}
+                            whileInView={{ x: 0, opacity: 1 }}
+                            className="text-primary font-black uppercase tracking-[0.3em] text-xs mb-2 block"
+                        >
+                            Our Special Selection
+                        </motion.span>
+                        <h2 className="text-5xl md:text-7xl font-black text-dark mb-2 tracking-tighter italic">EXPLORE <span className="text-primary">MENU</span></h2>
+                        <div className="w-full h-2 bg-dark rounded-full overflow-hidden">
+                            <motion.div 
+                                initial={{ x: '-100%' }}
+                                whileInView={{ x: 0 }}
+                                transition={{ duration: 1, delay: 0.5 }}
+                                className="w-1/3 h-full bg-primary"
+                            />
+                        </div>
                     </div>
-                    <Link href="/menu" className="group flex items-center gap-2 text-primary font-bold uppercase tracking-wider">
-                        View All Menu <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    <Link href="/menu" className="group flex items-center gap-3 bg-dark text-white px-8 py-4 rounded-full font-black uppercase tracking-widest text-xs hover:bg-primary transition-all shadow-xl hover:shadow-primary/40 active:scale-95">
+                        View Full Menu <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                     </Link>
                 </motion.div>
 
-                <div className="relative group/carousel">
-                    <div className="overflow-hidden">
+                <div className="relative px-4">
+                    <motion.div 
+                        className="overflow-visible py-10 cursor-grab active:cursor-grabbing"
+                    >
                         <motion.div 
                             className="flex gap-6"
-                            animate={{ x: `-${currentIndex * (100 / 5)}%` }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            style={{ width: `${Math.max(100, (menuItems.length / 5) * 100)}%` }}
+                            drag="x"
+                            dragConstraints={{
+                                left: -(menuItems.length * (100 / 5) * (currentIndex + 1)), // Rough estimate, will refine
+                                right: 0
+                            }}
+                            animate={{ x: `-${currentIndex * 20}%` }}
+                            transition={{ type: "spring", stiffness: 200, damping: 30 }}
+                            style={{ 
+                                width: `${Math.max(100, (menuItems.length / 5) * 100)}%`,
+                                display: 'flex'
+                            }}
                         >
                             {menuItems.map((item, idx) => (
-                                <Link 
-                                    href={`/menu/${item._id}`} 
-                                    className="flex-shrink-0 w-[calc(20%-19.2px)]" 
+                                <motion.div 
                                     key={item._id}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    style={{ width: 'calc(20% - 19.2px)' }}
+                                    className="flex-shrink-0"
                                 >
-                                    <motion.div 
-                                        whileHover={{ y: -10 }}
-                                        className={`p-8 rounded-[40px] text-center transition-all duration-500 ${
-                                            idx % 3 === 0 ? 'bg-red-50' : idx % 3 === 1 ? 'bg-blue-50' : 'bg-yellow-50'
-                                        }`}
-                                    >
-                                        <div className="relative w-full aspect-square mb-6">
-                                            <img 
-                                                src={item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`) : '/images/food-placeholder.jpg'} 
-                                                alt={item.name} 
-                                                className="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                        <h3 className="text-xl font-black text-dark mb-2 truncate">{item.name}</h3>
-                                        <div className={`mx-auto w-10 h-1.5 rounded-full ${
-                                            idx % 3 === 0 ? 'bg-primary' : idx % 3 === 1 ? 'bg-secondary' : 'bg-accent'
-                                        }`}></div>
-                                    </motion.div>
-                                </Link>
+                                    <Link href={`/menu/${item._id}`} className="block group">
+                                        <motion.div 
+                                            whileHover={{ y: -15, rotateY: 5 }}
+                                            className={`relative p-6 rounded-[40px] text-center transition-all duration-500 overflow-hidden shadow-lg ${
+                                                idx % 2 === 0 
+                                                ? 'bg-primary text-white group-hover:bg-dark' 
+                                                : 'bg-white text-dark border border-gray-100 group-hover:bg-primary group-hover:text-white group-hover:border-transparent'
+                                            }`}
+                                        >
+                                            <div className="relative w-full aspect-square mb-4 z-10 flex items-center justify-center">
+                                                <motion.img 
+                                                    whileHover={{ scale: 1.1 }}
+                                                    src={item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`) : '/images/food-placeholder.jpg'} 
+                                                    alt={item.name} 
+                                                    className="w-4/5 h-4/5 object-contain drop-shadow-xl"
+                                                />
+                                            </div>
+                                            
+                                            <h3 className={`text-lg font-black mb-2 truncate transition-colors ${
+                                                idx % 2 === 0 ? 'text-white group-hover:text-primary' : 'text-dark group-hover:text-white'
+                                            }`}>{item.name}</h3>
+                                            
+                                            <div className={`mt-2 text-[10px] font-black uppercase tracking-widest opacity-60`}>
+                                                Explore
+                                            </div>
+                                        </motion.div>
+                                    </Link>
+                                </motion.div>
                             ))}
                         </motion.div>
-                    </div>
+                    </motion.div>
 
-                    <button 
-                        onClick={prevMenu}
-                        disabled={currentIndex === 0}
-                        className="absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center text-primary disabled:opacity-0 transition-all z-10"
-                    >
-                        <ChevronLeft size={24} />
-                    </button>
-                    <button 
-                        onClick={nextMenu}
-                        disabled={currentIndex >= Math.max(0, menuItems.length - 5)}
-                        className="absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center text-primary disabled:opacity-0 transition-all z-10"
-                    >
-                        <ChevronRight size={24} />
-                    </button>
+                    <div className="flex justify-center gap-4 mt-8">
+                        <button 
+                            onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                            disabled={currentIndex === 0}
+                            className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-lg flex items-center justify-center text-dark hover:bg-primary hover:text-white transition-all disabled:opacity-20"
+                        >
+                            <ChevronLeft size={24} />
+                        </button>
+                        <button 
+                            onClick={() => setCurrentIndex(Math.min(Math.max(0, menuItems.length - 5), currentIndex + 1))}
+                            disabled={currentIndex >= Math.max(0, menuItems.length - 5)}
+                            className="w-12 h-12 rounded-full bg-white border border-gray-100 shadow-lg flex items-center justify-center text-dark hover:bg-primary hover:text-white transition-all disabled:opacity-20"
+                        >
+                            <ChevronRight size={24} />
+                        </button>
+                    </div>
                 </div>
             </section>
 
-            <section className="bg-dark py-24 relative overflow-hidden">
+            <section className="bg-dark py-32 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
 
@@ -222,67 +277,143 @@ export default function Home() {
                         initial={{ opacity: 0, x: -20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="mb-16"
+                        className="mb-20"
                     >
-                        <h2 className="text-5xl font-black text-white mb-2 uppercase italic tracking-tighter">Best Sellers</h2>
-                        <div className="flex gap-1">
-                            {[1,2,3].map(i => <div key={i} className="w-8 h-2 bg-primary"></div>)}
+                        <span className="text-primary font-black uppercase tracking-[0.4em] text-xs mb-4 block">Most Wanted</span>
+                        <h2 className="text-6xl md:text-8xl font-black text-white mb-2 uppercase italic tracking-tighter">Best <span className="text-primary">Sellers</span></h2>
+                        <div className="flex gap-2">
+                            {[1,2,3,4].map(i => <div key={i} className="w-12 h-2 bg-primary"></div>)}
                         </div>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                         {menuItems.slice(0, 4).map((item, idx) => (
                             <motion.div
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
                                 key={item._id}
+                                className="relative pb-10"
                             >
                                 <Link href={`/menu/${item._id}`} className="block group">
-                                    <div className="bg-white/5 border border-white/10 p-8 rounded-[30px] hover:bg-white/10 transition-all duration-500 relative overflow-hidden group-hover:-translate-y-4">
-                                        <div className="absolute top-6 right-6 glass-dark px-4 py-2 rounded-full flex items-center gap-1 text-accent">
-                                            <Star size={16} fill="currentColor" />
-                                            <span className="font-bold text-sm">4.9</span>
+                                    <div className={`relative p-10 rounded-[50px] transition-all duration-500 overflow-hidden shadow-2xl group-hover:-translate-y-4 ${
+                                        idx % 2 === 0 
+                                        ? 'bg-primary text-white' 
+                                        : 'bg-white text-dark'
+                                    }`}>
+                                        <div className="absolute top-8 right-8 glass-dark px-4 py-2 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg z-20">
+                                            <Star size={18} fill="#FFD700" className="text-[#FFD700]" />
+                                            <span className={`font-black text-sm ${idx % 2 === 0 ? 'text-white' : 'text-dark'}`}>4.9</span>
                                         </div>
-                                        <div className="w-full aspect-square mb-8 p-4">
+
+                                        <div className="w-full aspect-square mb-10 p-4 relative z-10">
                                             <img 
                                                 src={item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`) : '/images/food-placeholder.jpg'} 
                                                 alt={item.name} 
-                                                className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(255,49,49,0.3)] group-hover:scale-110 transition-transform duration-500"
+                                                className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${
+                                                    idx % 2 === 0 
+                                                    ? 'drop-shadow-[0_25px_50px_rgba(0,0,0,0.3)]' 
+                                                    : 'drop-shadow-[0_25px_50px_rgba(255,49,49,0.2)]'
+                                                }`}
                                             />
                                         </div>
-                                        <h3 className="text-2xl font-black text-white mb-4 line-clamp-1">{item.name}</h3>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-3xl font-black text-primary">Rs {item.price}</span>
-                                            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-dark group-hover:bg-primary group-hover:text-white transition-colors">
-                                                <ShoppingBag size={24} />
-                                            </div>
+
+                                        <div className="space-y-4 relative z-10 pb-6 text-center">
+                                            <h3 className="text-3xl font-black italic tracking-tighter line-clamp-1 truncate">{item.name}</h3>
+                                            <span className={`text-4xl font-black block ${idx % 2 === 0 ? 'text-white' : 'text-primary'}`}>
+                                                Rs {item.price}
+                                            </span>
                                         </div>
                                     </div>
                                 </Link>
+
+                                <motion.button
+                                    whileHover={{ scale: 1.05, y: -5 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={(e) => handleAddToCart(e, item)}
+                                    className="absolute bottom-4 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full bg-dark text-white font-black uppercase tracking-widest text-[10px] shadow-2xl z-30 border-4 border-dark hover:bg-primary transition-all group-hover:border-primary whitespace-nowrap"
+                                >
+                                    Add to Bucket
+                                </motion.button>
                             </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            <section className="section-container">
-                <div className="text-center mb-20">
-                    <h2 className="text-5xl md:text-7xl font-black text-dark mb-6 tracking-tighter">OUR TOP DEALS</h2>
-                    <div className="w-32 h-2 bg-primary mx-auto rounded-full"></div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {menuItems.slice(4, 8).map((item, idx) => (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1 }}
-                            key={item._id}
+            <section className="section-container relative overflow-hidden">
+                <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/5 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="flex flex-col md:flex-row justify-between items-center md:items-end mb-16 text-center md:text-left gap-6"
+                >
+                    <div className="relative">
+                        <motion.span 
+                            initial={{ x: -20, opacity: 0 }}
+                            whileInView={{ x: 0, opacity: 1 }}
+                            className="text-primary font-black uppercase tracking-[0.3em] text-xs mb-2 block"
                         >
-                            <MenuCard item={item} />
+                            Limited Time Offers
+                        </motion.span>
+                        <h2 className="text-5xl md:text-7xl font-black text-dark mb-2 tracking-tighter italic uppercase">Top <span className="text-primary">Deals</span></h2>
+                        <div className="w-20 h-2 bg-dark rounded-full"></div>
+                    </div>
+                </motion.div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+                    {menuItems.slice(4, 12).map((item, idx) => (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.05 }}
+                            key={item._id}
+                            className="relative pb-12"
+                        >
+                            <Link href={`/menu/${item._id}`} className="block group">
+                                <div className={`relative p-8 rounded-[40px] transition-all duration-500 overflow-hidden shadow-xl group-hover:-translate-y-3 ${
+                                    idx % 2 !== 0 
+                                    ? 'bg-primary text-white' 
+                                    : 'bg-white text-dark border border-gray-100'
+                                }`}>
+                                    <div className="absolute top-6 right-6 glass-dark px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 z-20">
+                                        <Star size={14} fill="#FFD700" className="text-[#FFD700]" />
+                                        <span className={`font-black text-xs ${idx % 2 !== 0 ? 'text-white' : 'text-dark'}`}>4.8</span>
+                                    </div>
+
+                                    <div className="w-full aspect-square mb-6 p-2 relative z-10">
+                                        <img 
+                                            src={item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`) : '/images/food-placeholder.jpg'} 
+                                            alt={item.name} 
+                                            className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${
+                                                idx % 2 !== 0 
+                                                ? 'drop-shadow-[0_15px_30px_rgba(0,0,0,0.2)]' 
+                                                : 'drop-shadow-[0_15px_30px_rgba(255,49,49,0.15)]'
+                                            }`}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2 relative z-10 pb-4 text-center">
+                                        <h3 className="text-xl font-black italic tracking-tighter line-clamp-1 truncate">{item.name}</h3>
+                                        <span className={`text-2xl font-black block ${idx % 2 !== 0 ? 'text-white' : 'text-primary'}`}>
+                                            Rs {item.price}
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+
+                            <motion.button
+                                whileHover={{ scale: 1.05, y: -3 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={(e) => handleAddToCart(e, item)}
+                                className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-dark text-white font-black uppercase tracking-widest text-[9px] shadow-2xl z-30 border-2 border-dark hover:bg-primary transition-all group-hover:border-primary whitespace-nowrap"
+                            >
+                                Add to Bucket
+                            </motion.button>
                         </motion.div>
                     ))}
                 </div>
