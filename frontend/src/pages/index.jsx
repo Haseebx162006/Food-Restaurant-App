@@ -102,59 +102,30 @@ export default function Home() {
                             priority
                             className="object-cover scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
-                        
-                        <div className="absolute inset-0 flex items-center px-12 md:px-24">
-                            <div className="max-w-2xl">
-                                <motion.h1 
-                                    initial={{ y: 30, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.3, duration: 0.8 }}
-                                    className="text-6xl md:text-8xl font-black text-white mb-6 leading-tight"
-                                >
-                                    {slides[currentSlide].title}
-                                </motion.h1>
-                                <motion.p 
-                                    initial={{ y: 30, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.5, duration: 0.8 }}
-                                    className="text-xl md:text-2xl text-white/80 mb-10 font-medium"
-                                >
-                                    {slides[currentSlide].subtitle}
-                                </motion.p>
-                                <motion.div
-                                    initial={{ y: 30, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.7, duration: 0.8 }}
-                                >
-                                    <Link href="/menu" className="btn-primary inline-flex items-center gap-2 group">
-                                        {slides[currentSlide].cta}
-                                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                                    </Link>
-                                </motion.div>
-                            </div>
-                        </div>
+                        <Image 
+                            src={slides[currentSlide].image} 
+                            alt="Hero" 
+                            fill
+                            priority
+                            className="object-cover scale-105"
+                        />
                     </motion.div>
                 </AnimatePresence>
-
                 <div className="absolute bottom-10 right-10 flex gap-4 z-10">
-                    <button onClick={prevHeroSlide} className="w-14 h-14 rounded-full glass-dark flex items-center justify-center text-white hover:bg-primary transition-colors">
+                    <button 
+                        onClick={prevHeroSlide} 
+                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-primary transition-all active:scale-90"
+                    >
                         <ChevronLeft size={28} />
                     </button>
-                    <button onClick={nextHeroSlide} className="w-14 h-14 rounded-full glass-dark flex items-center justify-center text-white hover:bg-primary transition-colors">
+                    <button 
+                        onClick={nextHeroSlide} 
+                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-primary transition-all active:scale-90"
+                    >
                         <ChevronRight size={28} />
                     </button>
                 </div>
 
-                <div className="absolute bottom-10 left-12 flex gap-3 z-10">
-                    {slides.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setCurrentSlide(index)}
-                            className={`h-2 rounded-full transition-all duration-500 ${index === currentSlide ? 'w-12 bg-primary' : 'w-3 bg-white/50'}`}
-                        />
-                    ))}
-                </div>
             </section>
 
             <section className="section-container relative">
