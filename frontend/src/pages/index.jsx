@@ -420,41 +420,93 @@ export default function Home() {
             </section>
 
             <section className="py-32 bg-primary relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full opacity-10">
-                    <div className="absolute top-10 left-10 text-white text-9xl font-black rotate-12 select-none">FAST</div>
-                    <div className="absolute bottom-20 right-20 text-white text-9xl font-black -rotate-12 select-none">FRESH</div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-[20rem] font-black opacity-20 select-none">FOOD</div>
+                <div className="absolute top-0 left-0 w-full h-full pointer-events-none select-none overflow-hidden">
+                    <div className="absolute top-10 left-10 text-white/10 text-9xl font-black rotate-12">FAST</div>
+                    <div className="absolute top-40 right-20 text-white/10 text-[12rem] font-black -rotate-6">SHEHWAR</div>
+                    <div className="absolute bottom-20 left-1/4 text-white/5 text-[15rem] font-black rotate-45">FAST</div>
+                    <div className="absolute bottom-40 right-10 text-white/10 text-9xl font-black -rotate-12">SHEHWAR</div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 relative z-10">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tight">FEATURED CATEGORIES</h2>
-                        <p className="text-white/80 text-xl font-medium max-w-2xl mx-auto">Discover our wide variety of dishes, from mouth-watering burgers to healthy alternatives.</p>
+                <div className="max-w-[1500px] mx-auto px-8 relative z-10">
+                    <div className="text-center mb-20">
+                        <h2 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter italic uppercase">Our <span className="text-dark">Specials</span></h2>
+                        <div className="w-40 h-2 bg-white mx-auto rounded-full"></div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {[
-                            { name: 'Fast Food', icon: ShoppingBag, color: 'text-primary' },
-                            { name: 'Main Course', icon: ShoppingBag, color: 'text-secondary' },
-                            { name: 'Desserts', icon: ShoppingBag, color: 'text-accent' },
-                            { name: 'Drinks', icon: ShoppingBag, color: 'text-primary' }
-                         ].map((cat, idx) => (
-                            <Link href={`/menu?category=${cat.name}`} key={idx} className="group">
-                                <div className="bg-white p-12 rounded-[50px] shadow-2xl flex flex-col items-center transition-all duration-500 group-hover:-translate-y-4 group-hover:scale-105">
-                                    <div className={`p-8 rounded-3xl mb-8 bg-gray-50 ${cat.color} group-hover:bg-primary group-hover:text-white transition-all duration-300`}>
-                                        <cat.icon size={48} />
-                                    </div>
-                                    <h3 className="text-2xl font-black text-dark group-hover:text-primary transition-colors">{cat.name}</h3>
-                                    <p className="text-sm text-gray-400 mt-4 font-bold uppercase tracking-widest flex items-center gap-2 group-hover:text-dark">
-                                        View items <ArrowRight size={14} />
-                                    </p>
-                                </div>
-                            </Link>
+                            '/banners/pickup.png',
+                            '/banners/value-bucket.png',
+                            '/banners/app.png',
+                            '/banners/explore.png'
+                        ].map((banner, idx) => (
+                            <motion.div 
+                                key={idx}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="relative rounded-[30px] overflow-hidden shadow-2xl group cursor-pointer"
+                            >
+                                <img 
+                                    src={banner} 
+                                    alt={`Banner ${idx + 1}`} 
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
+            <section className="py-32 bg-white relative overflow-hidden">
+                <div className="max-w-[1500px] mx-auto px-8 relative z-10">
+                    <div className="text-center mb-24">
+                        <motion.span 
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            className="text-primary font-black uppercase tracking-[0.5em] text-sm mb-4 block"
+                        >
+                            The Shehwar Advantage
+                        </motion.span>
+                        <h2 className="text-6xl md:text-8xl font-black text-dark mb-6 tracking-tighter italic uppercase">What Sets Us <span className="text-primary">Apart</span></h2>
+                        <div className="w-40 h-2 bg-primary mx-auto rounded-full"></div>
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                        {[
+                            { title: 'Fast Delivery', desc: 'Hot & fresh delivery right to your doorstep in minutes.', img: '/features/fast-delivery.png' },
+                            { title: 'Light to Wallet', desc: 'Gourmet taste at prices that wont break the bank.', img: '/features/light-to-wallet.png' },
+                            { title: 'Open 24 Hours', desc: 'Cravings have no schedule. We are here day and night.', img: '/features/open-24.png' },
+                            { title: 'Perfect Ambience', desc: 'Premium dining or cozy delivery - we master both.', img: '/features/ambience.png' }
+                        ].map((feature, idx) => (
+                            <motion.div 
+                                key={idx}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="group"
+                            >
+                                <div className="bg-[#fcfcfc] rounded-[50px] overflow-hidden shadow-xl border border-gray-100 transition-all duration-500 group-hover:-translate-y-4 group-hover:shadow-2xl">
+                                    <div className="relative h-64 overflow-hidden">
+                                        <img 
+                                            src={feature.img} 
+                                            alt={feature.title} 
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-40"></div>
+                                    </div>
+                                    <div className="p-8 text-center">
+                                        <h3 className="text-2xl font-black italic tracking-tighter uppercase mb-4 text-dark group-hover:text-primary transition-colors">{feature.title}</h3>
+                                        <p className="text-gray-500 font-bold leading-relaxed">{feature.desc}</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }
