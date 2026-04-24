@@ -1,14 +1,28 @@
 :root {
   --primary: #FF3131;
-  --secondary: #3B82F6;
+  --primary-hover: #E62A2A;
+  --secondary: #1A1A1A;
   --accent: #FFD700;
   --success: #06A77D;
   --error: #D62828;
   --warning: #F77F00;
-  --neutral: #F3F4F6;
-  --dark: #000000;
+  --neutral: #F8FAFC;
+  --dark: #0F172A;
   --white: #FFFFFF;
+  
+  --glass: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-blur: blur(12px);
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
   --font-heading: 'Delius', cursive;
   --font-body: 'Inter', sans-serif;
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-full: 9999px;
 }
