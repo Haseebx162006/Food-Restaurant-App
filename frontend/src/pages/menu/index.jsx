@@ -4,7 +4,8 @@ import MenuCard from '@/components/customer/MenuCard';
 import CategoryFilter from '@/components/customer/CategoryFilter';
 import Spinner from '@/components/common/Spinner';
 import { useSocket } from '@/context/SocketContext';
-import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Search, Sparkles, UtensilsCrossed } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Menu() {
     const [items, setItems] = useState([]);
@@ -17,11 +18,9 @@ export default function Menu() {
 
     useEffect(() => {
         fetchMenu();
-
         on('menu-updated', (updatedItem) => {
             setItems(prev => prev.map(item => item._id === updatedItem._id ? { ...item, ...updatedItem } : item));
         });
-
         return () => off('menu-updated');
     }, [on, off]);
 
@@ -45,80 +44,49 @@ export default function Menu() {
 
     const filterItems = () => {
         let result = [...items];
-
         if (activeCategory !== 'All') {
             result = result.filter(item => item.category === activeCategory);
         }
-
         if (searchQuery) {
             result = result.filter(item =>
                 item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.description.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
-
         setFilteredItems(result);
     };
 
     if (isLoading) return (
-        <div className="min-h-[70vh] flex flex-col items-center justify-center">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white">
             <Spinner size="large" />
-            <div className="mt-8 flex flex-col items-center">
-                <p className="text-secondary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Authenticating Flavors</p>
-                <div className="w-48 h-1 bg-gray-100 rounded-full mt-4 overflow-hidden">
-                    <div className="h-full bg-primary animate-progress-fast"></div>
-                </div>
-            </div>
+            <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ repeat: Infinity, duration: 1, repeatType: 'reverse' }}
+                className="mt-8 text-primary font-black uppercase tracking-[0.4em] text-[10px]"
+            >
+                Preparing the Feast
+            </motion.p>
         </div>
     );
 
     return (
-        <div className="bg-white min-h-screen">
-            {/* Premium Hero Section */}
-            <div className="relative pt-24 pb-40 px-4 overflow-hidden">
-                {/* Visual Background Elements */}
-                <div className="absolute top-0 left-0 w-full h-full -z-10">
-                    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] animate-pulse"></div>
-                    <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/5 rounded-full blur-[120px] animate-delay-1000"></div>
-                </div>
-
-                <div className="max-w-7xl mx-auto relative z-10 text-center">
-                    <div className="inline-flex items-center space-x-2 bg-primary/10 px-4 py-2 rounded-2xl text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-6">
-                        <Sparkles size={12} />
-                        <span>Curated for you</span>
-                    </div>
-                    <h1 className="text-5xl md:text-7xl font-heading font-black text-dark mb-6 tracking-tight">
-                        Choose your <span className="text-primary italic">Flavor</span>
-                    </h1>
-                    <p className="text-gray-400 max-w-2xl mx-auto font-medium text-lg leading-relaxed">
-                        Experience the art of fine dining delivered right to your doorstep. Every dish is crafted with passion.
-                    </p>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 -mt-24 pb-24">
-                {/* Search and Filters - Glassmorphism UI */}
-                <div className="bg-white/70 backdrop-blur-2xl p-4 md:p-6 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] border border-white/40 mb-16">
-                    <div className="flex flex-col gap-6">
-                        {/* Top Bar: Search */}
-                        <div className="flex flex-col md:flex-row gap-4 items-center">
-                            <div className="relative flex-grow w-full group">
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={20} />
-                                <input
-                                    type="text"
-                                    placeholder="Search for gourmet dishes..."
-                                    className="w-full pl-14 pr-6 py-5 bg-gray-50/50 border-none rounded-3xl focus:ring-2 focus:ring-primary/20 transition-all text-dark font-bold placeholder:text-gray-300 shadow-inner"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                            <button className="hidden md:flex items-center justify-center p-5 bg-dark text-white rounded-3xl hover:bg-primary transition-all shadow-lg shadow-dark/10 group">
-                                <SlidersHorizontal size={20} className="group-hover:rotate-90 transition-transform" />
-                            </button>
+        <div className="bg-[#fafafa] min-h-screen pb-32 pt-32">
+            <div className="max-w-[1600px] mx-auto px-8">
+                {/* Search and Filters at the TOP */}
+                <div className="mb-16">
+                    <div className="bg-white p-6 rounded-[35px] shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col md:flex-row gap-6 items-center">
+                        <div className="relative flex-grow w-full group">
+                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-primary transition-colors" size={20} />
+                            <input
+                                type="text"
+                                placeholder="Search your cravings..."
+                                className="w-full pl-16 pr-8 py-5 bg-gray-50/50 border-none rounded-[25px] focus:ring-0 transition-all text-dark font-bold placeholder:text-gray-300 text-sm"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
-
-                        {/* Bottom Bar: Categories */}
-                        <div className="w-full">
+                        <div className="w-full md:w-auto overflow-hidden">
                             <CategoryFilter
                                 activeCategory={activeCategory}
                                 onCategoryChange={setActiveCategory}
@@ -128,57 +96,52 @@ export default function Menu() {
                 </div>
 
                 {error ? (
-                    <div className="text-center py-24">
-                        <div className="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
-                            <SlidersHorizontal size={36} />
-                        </div>
-                        <h2 className="text-2xl font-black text-dark mb-2">Something went wrong</h2>
-                        <p className="text-gray-400 mb-8 max-w-xs mx-auto">{error}</p>
-                        <button onClick={fetchMenu} className="bg-primary text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Retry Now</button>
-                    </div>
-                ) : filteredItems.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-                        {filteredItems.map((item, index) => (
-                            <div key={item._id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
-                                <MenuCard item={item} />
-                            </div>
-                        ))}
+                    <div className="text-center py-24 bg-white rounded-[40px] shadow-sm border border-gray-100">
+                        <h2 className="text-2xl font-black text-dark mb-4 uppercase tracking-tighter">Something went wrong</h2>
+                        <button onClick={fetchMenu} className="bg-primary text-white px-10 py-4 rounded-full font-black uppercase tracking-widest text-xs hover:scale-105 transition-all">Retry</button>
                     </div>
                 ) : (
-                    <div className="text-center py-32 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-100">
-                        <div className="bg-white w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm">
-                            <Search className="text-gray-200" size={40} />
-                        </div>
-                        <h2 className="text-2xl font-black text-dark mb-2">No flavors found</h2>
-                        <p className="text-gray-400 mb-8">Try adjusting your filters or search keywords.</p>
-                        <button
-                            onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
-                            className="text-primary font-black hover:scale-105 transition-transform inline-flex items-center"
-                        >
-                            <Sparkles size={16} className="mr-2" />
-                            Reset Selection
-                        </button>
-                    </div>
+                    <AnimatePresence mode="popLayout">
+                        {filteredItems.length > 0 ? (
+                            <motion.div 
+                                layout
+                                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-8 gap-y-16"
+                            >
+                                {filteredItems.map((item, index) => (
+                                    <motion.div
+                                        key={item._id}
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ duration: 0.4 }}
+                                    >
+                                        <MenuCard item={item} />
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+
+                        ) : (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-center py-40 bg-white rounded-[40px] border-2 border-dashed border-gray-100"
+                            >
+                                <Sparkles className="mx-auto text-gray-200 mb-6" size={60} />
+                                <h2 className="text-3xl font-black text-dark mb-2 uppercase tracking-tighter italic">No Flavors Found</h2>
+                                <p className="text-gray-400 mb-10">Try a different category or search term.</p>
+                                <button
+                                    onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
+                                    className="bg-dark text-white px-10 py-4 rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-primary transition-all shadow-xl shadow-dark/10"
+                                >
+                                    Reset Selection
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 )}
             </div>
-
-            {/* Global Animation Styles */}
-            <style jsx global>{`
-                @keyframes fade-in-up {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fade-in-up {
-                    animation: fade-in-up 0.6s ease-out forwards;
-                }
-                .no-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .no-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-            `}</style>
         </div>
     );
 }
+
